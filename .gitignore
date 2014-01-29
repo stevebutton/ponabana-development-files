@@ -1,7 +1,6 @@
 .htaccess
 www.ponabana.dev/resources-ignore/
 www.ponabana.dev/wp-config.php
-www.ponabana.dev/wp-content/uploads/
 www.ponabana.dev/wp-content/blogs.dir/
 www.ponabana.dev/wp-content/upgrade/
 www.ponabana.dev/wp-content/backup-db/
