@@ -10,7 +10,7 @@ Template: compasso
 
 @import url("../compasso/style.css");
 
-/* override body font size */
+/* override the body font size */
 body {
 	font-size: 15px;
 	line-height: 24px;
