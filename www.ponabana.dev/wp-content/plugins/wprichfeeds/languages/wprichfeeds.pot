@@ -1,0 +1,221 @@
+# Copyright (C) 2010 
+# This file is distributed under the same license as the  package.
+msgid ""
+msgstr ""
+"Project-Id-Version: wpRichFeeds 1.02\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2011-03-13 16:05-0430\n"
+"PO-Revision-Date: 2011-03-13 16:05-0430\n"
+"Last-Translator: Williams Castillo <will@williamscastillo.com>\n"
+"Language-Team: Williams Castillo <will@williamscastillo.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: en_US\n"
+"X-Poedit-Country: Venezuela\n"
+"X-Poedit-SourceCharset: utf-8\n"
+"X-Poedit-KeywordsList: __;_e\n"
+"X-Poedit-Basepath: .\n"
+"X-Poedit-SearchPath-0: C:\\Fuentes\\WP\\wp-content\\plugins\\wprichfeeds\n"
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:32
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:50
+#, php-format
+msgid "%s v%s - Settings"
+msgstr "%s v%s - Settings"
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:52
+msgid "News from the developer..."
+msgstr "News from the developer..."
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:55
+msgid "wpRichFeeds Filters"
+msgstr "wpRichFeeds Filters"
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:56
+msgid "<strong>wpRichFeeds</strong> provides three filters you can use to sanitize the post images:"
+msgstr "<strong>wpRichFeeds</strong> provides three filters you can use to sanitize the post images:"
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:58
+msgid "<strong><em>wprichfeeds_image_filter: </em></strong>It receives an array which elements are url, size and type. Beat them!"
+msgstr "<strong><em>wprichfeeds_image_filter: </em></strong>It receives an array which elements are url, size and type. Beat them!"
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:58
+msgid "There are also other elements in case you need them: path, width, height, attr and mime."
+msgstr "There are also other elements in case you need them: path, width, height, attr and mime."
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:59
+msgid "<strong><em>wprichfeeds_image_path: </em></strong>It receives the image fetched from a post. If you are having trouble finding the size or format of this image, try to sanitize it and return the path to the image, instead of a its URL."
+msgstr "<strong><em>wprichfeeds_image_path: </em></strong>It receives the image fetched from a post. If you are having trouble finding the size or format of this image, try to sanitize it and return the path to the image, instead of a its URL."
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:60
+msgid "<strong><em>wprichfeeds_image_url: </em></strong>It receives the image fetched from a post. If you are having trouble finding the size or format of this image or even the image itself, try to sanitize it and return a URL relative to the web root."
+msgstr "<strong><em>wprichfeeds_image_url: </em></strong>It receives the image fetched from a post. If you are having trouble finding the size or format of this image or even the image itself, try to sanitize it and return a URL relative to the web root."
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:63
+msgid "Show me an example, please!"
+msgstr "Show me an example, please!"
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:72
+msgid "wpRichFeeds Fetching Methods"
+msgstr "wpRichFeeds Fetching Methods"
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:73
+msgid "The Fetching Method tells wpRichFeeds how to obtain the image of a given post. There are three methods supported so far:"
+msgstr "The Fetching Method tells wpRichFeeds how to obtain the image of a given post. There are three methods supported so far:"
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:75
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:287
+msgid "First Image"
+msgstr "First Image"
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:75
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:98
+msgid "default"
+msgstr "default"
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:75
+msgid "This method commands wpRichFeeds to fetch the first image it encounters inside the post and use it as the image for the feed item."
+msgstr "This method commands wpRichFeeds to fetch the first image it encounters inside the post and use it as the image for the feed item."
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:76
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:285
+msgid "Custom Field"
+msgstr "Custom Field"
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:76
+msgid "You must specify the name of the Custom Field you are using to hold the images. It must exists within your domain."
+msgstr "You must specify the name of the Custom Field you are using to hold the images. It must exists within your domain."
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:77
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:286
+msgid "Post Thumbnail"
+msgstr "Post Thumbnail"
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:77
+#, php-format
+msgid "If you theme supports Post Thumbnails (%s), wpRichFeeds could retrieve them and use them as the image of the feed items."
+msgstr "If you theme supports Post Thumbnails (%s), wpRichFeeds could retrieve them and use them as the image of the feed items."
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:77
+msgid "and it does"
+msgstr "and it does"
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:77
+msgid "actually, <strong><a href=\"http://codex.wordpress.org/Post_Thumbnails#Enabling_Support_for_Post_Thumbnails\" target=\"_ext\" title=\"Enabling Support for Post Thumbnails \">it doesn't</a></strong>"
+msgstr "actually, <strong><a href=\"http://codex.wordpress.org/Post_Thumbnails#Enabling_Support_for_Post_Thumbnails\" target=\"_ext\" title=\"Enabling Support for Post Thumbnails \">it doesn't</a></strong>"
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:87
+msgid "Save Changes"
+msgstr "Save Changes"
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:95
+msgid "wpRichFeeds Publishing Methods"
+msgstr "wpRichFeeds Publishing Methods"
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:96
+msgid "The Publishing Method tells wpRichFeeds the way it should includes the image in the feed item. Currently, there are two methods supported for RSS feeds (ATOM feeds always uses the <strong>enclosure</strong> method):"
+msgstr "The Publishing Method tells wpRichFeeds the way it should includes the image in the feed item. Currently, there are two methods supported for RSS feeds (ATOM feeds always uses the <strong>enclosure</strong> method):"
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:98
+msgid "Use the standard enclosure method. There can be only one per feed entry."
+msgstr "Use the standard enclosure method. There can be only one per feed entry."
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:99
+msgid "Use the Yahoo media:content parameter. There's no limit in the number of images per feed entry (useful if you include more than one attachment in your posts)"
+msgstr "Use the Yahoo media:content parameter. There's no limit in the number of images per feed entry (useful if you include more than one attachment in your posts)"
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:111
+msgid "wpRichFeeds Filters Example"
+msgstr "wpRichFeeds Filters Example"
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:121
+msgid "The following example is suppousely to be run from the functions.php file of your theme."
+msgstr "The following example is suppousely to be run from the functions.php file of your theme."
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:122
+msgid "It is a fictional example! It MUST be adecuated to your needs."
+msgstr "It is a fictional example! It MUST be adecuated to your needs."
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:160
+msgid "Provide the URL of the main image you want to show at the header of your RSS/ATOM feeds."
+msgstr "Provide the URL of the main image you want to show at the header of your RSS/ATOM feeds."
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:165
+msgid "Please, define the way how the plugin should behave at post level."
+msgstr "Please, define the way how the plugin should behave at post level."
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:169
+msgid "Check this box if you are planning to completelly deactivate this plugin. It will remove all its data the next time you deactivate it, otherwise, the data will be kept in your database for the next time you decide to activate it."
+msgstr "Check this box if you are planning to completelly deactivate this plugin. It will remove all its data the next time you deactivate it, otherwise, the data will be kept in your database for the next time you decide to activate it."
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:232
+msgid "Header Image"
+msgstr "Header Image"
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:235
+msgid "RSS/ATOM Logo URL"
+msgstr "RSS/ATOM Logo URL"
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:245
+msgid "Introduce the URL to the image you want to be the main image of the feed (probably your logo)."
+msgstr "Introduce the URL to the image you want to be the main image of the feed (probably your logo)."
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:245
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:262
+#, php-format
+msgid "*** MUST BEGIN WITH: %s"
+msgstr "*** MUST BEGIN WITH: %s"
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:252
+msgid "ATOM Icon URL"
+msgstr "ATOM Icon URL"
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:262
+msgid "This icon will be used in ATOM feeds."
+msgstr "This icon will be used in ATOM feeds."
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:269
+msgid "Post Images"
+msgstr "Post Images"
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:272
+msgid "Fetching Method"
+msgstr "Fetching Method"
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:282
+msgid "Specify the primary method to use to obtain the image for a given post. If the image couldn't be found, the other methods will be used."
+msgstr "Specify the primary method to use to obtain the image for a given post. If the image couldn't be found, the other methods will be used."
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:293
+msgid "Custom Field Name"
+msgstr "Custom Field Name"
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:303
+msgid "Custom Field name that holds the URL of the images in each post, if Custom Field was selected as the Fetching Method."
+msgstr "Custom Field name that holds the URL of the images in each post, if Custom Field was selected as the Fetching Method."
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:309
+msgid "RSS Publishing Method"
+msgstr "RSS Publishing Method"
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:319
+msgid "Specify the method how the image will be included in the feed."
+msgstr "Specify the method how the image will be included in the feed."
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:322
+msgid "enclosure (1 per feed entry)"
+msgstr "enclosure (1 per feed entry)"
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:323
+msgid "media:content (may contain multiple instances per entry)"
+msgstr "media:content (may contain multiple instances per entry)"
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:329
+msgid "Uninstall Plugin"
+msgstr "Uninstall Plugin"
+
+#: C:\Fuentes\WP\wp-content\plugins\wprichfeeds/admin.php:332
+msgid "Yeah! Zap it!"
+msgstr "Yeah! Zap it!"
+
