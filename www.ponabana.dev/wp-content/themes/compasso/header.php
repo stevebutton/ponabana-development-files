@@ -30,6 +30,7 @@
 
 
 				<?php g7_menu('topmenu'); ?>
+                <?php do_action('icl_language_selector'); ?>
 				<?php if (g7_option('header_text')) : ?>
 				<div id="intro">
 					<?php echo do_shortcode(g7_option('header_text')); ?>
