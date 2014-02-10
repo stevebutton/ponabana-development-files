@@ -30,7 +30,7 @@
 
 
 				<?php g7_menu('topmenu'); ?>
-                <?php do_action('icl_language_selector'); ?>
+              
 				<?php if (g7_option('header_text')) : ?>
 				<div id="intro">
 					<?php echo do_shortcode(g7_option('header_text')); ?>
@@ -61,6 +61,7 @@
 			</div>
 			<div class="eight columns">
 				<?php if (g7_option('banner') && g7_option('banner_image')) : ?>
+                  <?php do_action('icl_language_selector'); ?>
 				<div id="top-banner">
 					<a href="<?php echo g7_option('banner_link'); ?>">
 						<img src="<?php echo g7_option('banner_image'); ?>" alt="banner">
