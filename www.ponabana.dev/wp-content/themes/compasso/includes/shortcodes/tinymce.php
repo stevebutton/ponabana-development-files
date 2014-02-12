@@ -15,7 +15,7 @@ class G7_TinyMCE {
 		}
 	}
 
-	function add_plugin() {
+	function add_plugin($plugin_array) {
 		$plugin_array['g7_button'] = PARENT_URL . '/includes/shortcodes/buttons.js';
 		return $plugin_array;
 	}

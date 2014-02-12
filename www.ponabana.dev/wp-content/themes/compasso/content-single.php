@@ -21,7 +21,7 @@ if ($enable_rating) {
 			<?php the_category(', ') ?>
 			<span><?php _e('with', 'g7theme'); ?></span>
 			<?php comments_popup_link(); ?>
-			<?php edit_post_link('Edit', '(', ')'); ?>
+			<?php edit_post_link(__('Edit', 'g7theme'), '(', ')'); ?>
 		</div>
 	</header>
 
@@ -55,7 +55,7 @@ if ($enable_rating) {
 
 		<?php if (g7_option('single_tags')) : ?>
 		<div class="tags">
-			<?php the_tags('Tags: ', ', ', ''); ?>
+			<?php the_tags(__('Tags', 'g7theme') . ': ', ', ', ''); ?>
 		</div>
 		<?php endif; ?>
 

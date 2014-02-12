@@ -19,18 +19,9 @@
 <body <?php body_class(); ?>>
 	<?php if (g7_option('top_bar')) : ?>
 	<nav id="top">
-  
-
 		<div class="container clearfix">
 			<div class="sixteen columns">
-             <a href="https://www.facebook.com/pages/Unicef-RDC/149925238389509" target="_blank"><img src="/gfx/facebook-icon.png" width="32" height="32" /></a>
-
-<a href="http://www.youtube.com/user/unicefrdc2012" target="_blank"><img src="/gfx/youtube-icon.png" width="32" height="32" /></a>
-<a href="https://twitter.com/UNICEFDRC" target="_blank"><img src="/gfx/twitter-icon.png" width="32" height="32" /></a>
-
-
 				<?php g7_menu('topmenu'); ?>
-              
 				<?php if (g7_option('header_text')) : ?>
 				<div id="intro">
 					<?php echo do_shortcode(g7_option('header_text')); ?>
@@ -43,7 +34,7 @@
 
 	<header>
 		<div class="container">
-			<div class="eight columns">
+			<div class="six columns">
 				<div id="logo">
 					<?php if (g7_option('logo') == '1') : ?>
 						<a href="<?php echo esc_url(home_url('/')); ?>">
@@ -59,9 +50,8 @@
 					<?php endif; ?>
 				</div>
 			</div>
-			<div class="eight columns">
+			<div class="ten columns">
 				<?php if (g7_option('banner') && g7_option('banner_image')) : ?>
-                  <?php do_action('icl_language_selector'); ?>
 				<div id="top-banner">
 					<a href="<?php echo g7_option('banner_link'); ?>">
 						<img src="<?php echo g7_option('banner_image'); ?>" alt="banner">

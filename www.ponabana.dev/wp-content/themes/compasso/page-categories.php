@@ -54,6 +54,8 @@ get_header();
 		<?php endif; ?>
 	<?php endfor; ?>
 
+	<div class="clear"></div>
+
 	<?php for ($i = 0; $i < $count1col - 1; $i++) : ?>
 		<?php
 		$c = new WP_Query(array(

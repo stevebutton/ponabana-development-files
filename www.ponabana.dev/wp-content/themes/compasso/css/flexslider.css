@@ -243,3 +243,7 @@ html[xmlns] .slides {
 	color: #ccc;
 	margin: 15px 0 20px;
 }
+
+.flex-viewport {
+    direction: ltr;
+}

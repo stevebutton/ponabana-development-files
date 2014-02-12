@@ -1,9 +1,9 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: Compasso\n"
+"Project-Id-Version: compasso\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-04-29 06:52+0700\n"
-"PO-Revision-Date: 2013-04-29 06:52+0700\n"
+"POT-Creation-Date: 2013-06-18 06:50+0700\n"
+"PO-Revision-Date: 2013-06-18 06:51+0700\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -76,6 +76,12 @@ msgstr ""
 msgid "Sorry, no posts matched your criteria."
 msgstr ""
 
+#: ../content-page.php:6
+#: ../content-single.php:24
+#: ../functions.php:526
+msgid "Edit"
+msgstr ""
+
 #: ../content-single.php:16
 msgid "Posted on"
 msgstr ""
@@ -94,6 +100,10 @@ msgstr ""
 
 #: ../content-single.php:45
 msgid "Overall"
+msgstr ""
+
+#: ../content-single.php:58
+msgid "Tags"
 msgstr ""
 
 #: ../content-single.php:64
@@ -121,65 +131,81 @@ msgstr ""
 msgid "Top Menu"
 msgstr ""
 
-#: ../functions.php:418
-#: ../functions.php:445
+#: ../functions.php:161
+msgid "Navigate to..."
+msgstr ""
+
+#: ../functions.php:424
+#: ../functions.php:451
 msgid "No related posts found"
 msgstr ""
 
-#: ../functions.php:520
+#: ../functions.php:488
+msgid "First"
+msgstr ""
+
+#: ../functions.php:491
+msgid "Previous"
+msgstr ""
+
+#: ../functions.php:503
+msgid "Next"
+msgstr ""
+
+#: ../functions.php:506
+msgid "Last"
+msgstr ""
+
+#: ../functions.php:526
 msgid "Pingback:"
 msgstr ""
 
-#: ../functions.php:520
-msgid "Edit"
-msgstr ""
-
-#: ../functions.php:533
+#: ../functions.php:539
 #, php-format
 msgid "%1$s at %2$s"
 msgstr ""
 
-#: ../functions.php:536
+#: ../functions.php:542
 msgid "(Edit)"
 msgstr ""
 
-#: ../functions.php:540
+#: ../functions.php:546
 msgid "Your comment is awaiting moderation."
 msgstr ""
 
-#: ../functions.php:542
+#: ../functions.php:548
 msgid "Reply"
 msgstr ""
 
-#: ../functions.php:564
+#: ../functions.php:574
 msgid "Home"
 msgstr ""
 
-#: ../functions.php:587
+#: ../functions.php:597
 msgid "Category Archives"
 msgstr ""
 
-#: ../functions.php:628
+#: ../functions.php:638
 msgid "Search Results for:"
 msgstr ""
 
-#: ../functions.php:630
+#: ../functions.php:640
 msgid "Post Tagged with:"
 msgstr ""
 
-#: ../functions.php:636
+#: ../functions.php:646
 msgid "Author Archive"
 msgstr ""
 
-#: ../functions.php:638
+#: ../functions.php:648
 msgid "Page Not Found"
 msgstr ""
 
-#: ../functions.php:844
+#: ../functions.php:854
 msgid "All Categories"
 msgstr ""
 
-#: ../functions.php:854
+#: ../functions.php:864
 msgid "View all posts under this category"
 msgstr ""
 
@@ -259,8 +285,6 @@ msgstr ""
 
 #: ../includes/widgets.php:152
 #: ../includes/widgets/ads-125.php:19
-#: ../includes/widgets/ads-300.php:19
-#: ../includes/widgets/comments.php:19
 msgid "Title"
 msgstr ""
 
@@ -522,10 +546,6 @@ msgstr ""
 msgid "Latest"
 msgstr ""
 
-#: ../includes/widgets/tabs.php:77
-msgid "Tags"
-msgstr ""
-
 #: ../includes/widgets/twitter.php:9
 msgid "Latest twitter updates"
 msgstr ""
@@ -534,24 +554,20 @@ msgstr ""
 msgid "Latest Tweets"
 msgstr ""
 
-#: ../includes/widgets/twitter.php:29
+#: ../includes/widgets/twitter.php:49
 msgid "Number of updates"
 msgstr ""
 
-#: ../includes/widgets/twitter.php:35
+#: ../includes/widgets/twitter.php:55
 msgid "Follow text"
 msgstr ""
 
-#: ../includes/widgets/twitter.php:36
+#: ../includes/widgets/twitter.php:56
 msgid "Follow us on Twitter"
 msgstr ""
 
-#: ../includes/widgets/twitter.php:80
+#: ../includes/widgets/twitter.php:113
 msgid "ago"
-msgstr ""
-
-#: ../includes/widgets/twitter.php:88
-msgid "Twitter feed loading..."
 msgstr ""
 
 #: ../includes/widgets/video.php:9

@@ -141,6 +141,7 @@ if (!function_exists('g7_scripts')) {
 		wp_enqueue_script('easing', PARENT_URL . '/js/jquery.easing.1.3.js', array('jquery'), false, true);
 		wp_enqueue_script('placeholder', PARENT_URL . '/js/jquery.placeholder.min.js', array('jquery'), false, true);
 		wp_enqueue_script('masonry', PARENT_URL . '/js/jquery.masonry.min.js', array('jquery'), false, true);
+		wp_enqueue_script('fitvids', PARENT_URL . '/js/jquery.fitvids.js', array('jquery'), false, true);
 		if (is_front_page() && g7_option('slider')) {
 			wp_enqueue_script('flex', PARENT_URL . '/js/jquery.flexslider-min.js', array('jquery'), false, true);
 		}
@@ -156,7 +157,9 @@ if (!function_exists('g7_scripts')) {
 			'slider_animation'      => g7_option('slider_animation'),
 			'slider_slideshowSpeed' => g7_option('slider_slideshowSpeed'),
 			'slider_animationSpeed' => g7_option('slider_animationSpeed'),
-			'slider_pauseOnHover'   => g7_option('slider_pauseOnHover')
+			'slider_pauseOnHover'   => g7_option('slider_pauseOnHover'),
+			'navigate_text'         => __('Navigate to...', 'g7theme'),
+			'rtl'                   => is_rtl()
 		));
 		if (is_singular() && comments_open() && get_option('thread_comments')) {
 			wp_enqueue_script('comment-reply', false, array(), false, true);
@@ -325,6 +328,7 @@ if (!function_exists('g7_login_logo')) {
  */
 if (!function_exists('g7_share')) {
 	function g7_share() {
+		$share = array();
 		if (g7_option('share_facebook')) {
 			$share['facebook'] = array(
 				'title' => 'Share this post on Facebook',
@@ -374,6 +378,7 @@ if (!function_exists('g7_share')) {
 			);
 		}
 		?>
+		<?php if (!empty($share)) : ?>
 		<ul>
 			<?php foreach ($share as $k => $v) : ?>
 			<li>
@@ -383,6 +388,7 @@ if (!function_exists('g7_share')) {
 			</li>
 			<?php endforeach; ?>
 		</ul>
+		<?php endif; ?>
 		<?php
 	}
 }
@@ -459,7 +465,7 @@ if (!function_exists('g7_related_posts')) {
  * @link http://www.kriesi.at/archives/how-to-build-a-wordpress-post-pagination-without-plugin
  */
 if (!function_exists('g7_pagination')) {
-	function g7_pagination($pages = '', $range = 2, $numbered = true) {
+	function g7_pagination($pages = '', $range = 3, $numbered = true) {
 		if (!$numbered) {
 			echo '<div class="pagination box">' . get_posts_nav_link() . '</div>';
 			return;
@@ -479,10 +485,10 @@ if (!function_exists('g7_pagination')) {
 		if (1 != $pages) {
 			echo '<div class="pagination box">';
 			if ($paged > 2 && $paged > $range + 1 && $showitems < $pages) {
-				echo '<a href="'.get_pagenum_link(1).'"><span class="arrows">&laquo;</span> First</a>';
+				echo '<a href="'.get_pagenum_link(1).'"><span class="arrows">&laquo;</span> ' . __('First', 'g7theme') . '</a>';
 			}
 			if ($paged > 1 && $showitems < $pages) {
-				echo '<a href="'.get_pagenum_link($paged - 1).'"><span class="arrows">&lsaquo;</span> Previous</a>';
+				echo '<a href="'.get_pagenum_link($paged - 1).'"><span class="arrows">&lsaquo;</span> ' . __('Previous', 'g7theme') . '</a>';
 			}
 			for ($i = 1; $i <= $pages; $i++) {
 				if (1 != $pages && (!($i >= $paged + $range + 1 || $i <= $paged - $range - 1) || $pages <= $showitems)) {
@@ -494,10 +500,10 @@ if (!function_exists('g7_pagination')) {
 				}
 			}
 			if ($paged < $pages && $showitems < $pages) {
-				echo '<a href="'.get_pagenum_link($paged + 1).'">Next <span class="arrows">&rsaquo;</span></a>';
+				echo '<a href="'.get_pagenum_link($paged + 1).'">' . __('Next', 'g7theme') . ' <span class="arrows">&rsaquo;</span></a>';
 			}
 			if ($paged < $pages-1 && $paged + $range - 1 < $pages && $showitems < $pages) {
-				echo '<a href="'.get_pagenum_link($pages).'">Last <span class="arrows">&raquo;</span></a>';
+				echo '<a href="'.get_pagenum_link($pages).'">' . __('Last', 'g7theme') . ' <span class="arrows">&raquo;</span></a>';
 			}
 			echo "</div>\n";
 		}
@@ -560,7 +566,11 @@ if (!function_exists('g7_breadcrumbs')) {
 		if (!g7_option('breadcrumbs')) {
 			return;
 		}
-		$separator = sprintf('<span class="bc-separator"><img src="%s/images/arrow-right2.gif" alt="&raquo;"></span>', PARENT_URL);
+		$separator = sprintf(
+			'<span class="bc-separator"><img src="%s/images/%s" alt="&raquo;"></span>',
+			PARENT_URL,
+			is_rtl() ? 'arrow-left2.gif' : 'arrow-right2.gif'
+		);
 		$name = __('Home', 'g7theme');
 		$currentBefore = '<span class="bc-current">';
 		$currentAfter = '</span>';

@@ -145,9 +145,11 @@
 		 */
 		if ($.fn.mobileMenu) {
 			$('#topmenu').mobileMenu({
+				defaultText: g7.navigate_text,
 				className: 'topmenu'
 			});
 			$('#mainmenu').mobileMenu({
+				defaultText: g7.navigate_text,
 				className: 'mainmenu'
 			});
 		}
@@ -162,6 +164,10 @@
 		 * and adjust box width in masonry container
 		 */
 		var mcontainer = $('.masonry-container');
+		var masonry_rtl = false;
+		if (g7.rtl) {
+			masonry_rtl = true;
+		}
 		mcontainer.each(function() {
 			var mc = $(this);
 			mc.imagesLoaded(function() {
@@ -169,6 +175,7 @@
 					itemSelector: '.masonry-item',
 					isAnimated: true,
 					gutterWidth: 20,
+					isRTL: masonry_rtl,
 					columnWidth: function(containerWidth) {
 						var box_width = mc.children('.masonry-item').width();
 						return box_width;
@@ -267,6 +274,11 @@
 			});
 			return false;
 		});
+
+		/**
+		 * add fitvids for video inside content and widgets
+		 */
+		$('.entry-content, .widget').fitVids();
 
 	});
 

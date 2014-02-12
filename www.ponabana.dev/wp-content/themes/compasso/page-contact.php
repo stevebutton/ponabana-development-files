@@ -38,7 +38,7 @@ get_header();
 		<header class="entry-header mb20">
 			<?php g7_breadcrumbs(); ?>
 			<h1 class="entry-title"><?php the_title(); ?></h1>
-			<?php edit_post_link('Edit', '<div class="entry-meta">(', ')</div>'); ?>
+			<?php edit_post_link(__('Edit', 'g7theme'), '<div class="entry-meta">(', ')</div>'); ?>
 		</header>
 
 		<?php if (!empty($content)) : ?>

@@ -19,9 +19,29 @@ class G7_Twitter_Widget extends G7_Widget {
 				'label' => __('Title', 'g7theme'),
 				'std' => __('Latest Tweets', 'g7theme')
 			),
+			'consumer_key' => array(
+				'type' => 'text',
+				'label' => 'Consumer key',
+				'std' => ''
+			),
+			'consumer_secret' => array(
+				'type' => 'text',
+				'label' => 'Consumer secret',
+				'std' => ''
+			),
+			'access_token' => array(
+				'type' => 'text',
+				'label' => 'Access token',
+				'std' => ''
+			),
+			'access_token_secret' => array(
+				'type' => 'text',
+				'label' => 'Access token secret',
+				'std' => ''
+			),
 			'screen_name' => array(
 				'type' => 'text',
-				'label' => 'Twitter ID',
+				'label' => 'Twitter username',
 				'std' => ''
 			),
 			'count' => array(
@@ -45,28 +65,41 @@ class G7_Twitter_Widget extends G7_Widget {
 		echo $before_widget;
 
 		$title = apply_filters('widget_title', $instance['title']);
-		if ( ! empty($title)) {
+		if (!empty($title)) {
 			echo $before_title . $title . $after_title;
 		}
 
-		$username = $instance['screen_name'];
-		$number = $instance['count'];
+		$username            = $instance['screen_name'];
+		$number              = $instance['count'];
+		$consumer_key        = isset($instance['consumer_key']) ? $instance['consumer_key'] : '';
+		$consumer_secret     = isset($instance['consumer_secret']) ? $instance['consumer_secret'] : '';
+		$access_token        = isset($instance['access_token']) ? $instance['access_token'] : '';
+		$access_token_secret = isset($instance['access_token_secret']) ? $instance['access_token_secret'] : '';
 
 		$transient_name = "twitter_{$username}_{$number}";
 		$cache_time = 10;
 
-		if ( ! empty($username)) {
+		if (!empty($username)) {
 			if (false === ($tweets = get_transient($transient_name))) {
-				//$response = wp_remote_get("http://api.twitter.com/1/statuses/user_timeline/{$username}.json?count={$number}");
-				$response = wp_remote_get("https://api.twitter.com/1/statuses/user_timeline.json?screen_name={$username}&count={$number}");
-				if ( !is_wp_error($response)) {
-					$tweets = json_decode($response['body']);
+				require_once PARENT_DIR . '/includes/twitteroauth/twitteroauth.php';
+				$toa = new TwitterOAuth($consumer_key, $consumer_secret, $access_token, $access_token_secret);
+				$tweets = $toa->get(
+					'statuses/user_timeline',
+					array(
+						'screen_name'     => $username,
+						'count'           => $number,
+						'exclude_replies' => false
+					)
+				);
+				// print_r($tweets);
+				// die;
+				if (!empty($tweets) && empty($tweets->errors)) {
 					set_transient($transient_name, $tweets, 60 * $cache_time);
 				}
 			}
 			?>
 
-			<?php if (!empty($tweets) && empty($tweets->error)) : ?>
+			<?php if (!empty($tweets) && empty($tweets->errors)) : ?>
 
 				<ul>
 					<?php
@@ -83,16 +116,18 @@ class G7_Twitter_Widget extends G7_Widget {
 				</ul>
 
 			<?php else : ?>
-
-				<ul id="twitter_update_list">
-					<li><?php _e('Twitter feed loading...', 'g7theme'); ?></li>
-				</ul>
-				<script type="text/javascript" src="http://twitter.com/javascripts/blogger.js"></script>
-				<script type="text/javascript" src="https://api.twitter.com/1/statuses/user_timeline/<?php echo $username; ?>.json?callback=twitterCallback2&amp;count=<?php echo $number; ?>"></script>
-
+			
+				<?php  if (!empty($tweets->errors)) : ?>
+					<!--
+					<?php foreach ($tweets->errors as $error) : ?>
+					<?php echo $error->message; ?> (code: <?php echo $error->code; ?>)
+					<?php endforeach; ?>
+					-->
+				<?php endif;  ?>
+				
 			<?php endif; ?>
 
-			<?php if ( ! empty($instance['follow_text'])) : ?>
+			<?php if (!empty($instance['follow_text'])) : ?>
 			<a class="follow-us" href="http://twitter.com/<?php echo $username; ?>">
 				<?php echo $instance['follow_text']; ?>
 			</a>
