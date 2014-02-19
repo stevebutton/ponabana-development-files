@@ -23,7 +23,19 @@ margin: 0;
 padding: 7px 0;
 font-size: 18px;
 }
+#logo {
+padding-top: 40px;
+}
+#language {
+position: relative;
+float:right;
+}
 
+
+#topmenu {
+float: right;
+font-size: 12px;
+}
 #breadcrumbs {
 font-size: 14px;
 margin-bottom: 5px;
@@ -64,16 +76,39 @@ width: 760px;
 }
 
 body > header {
-	margin-top: 42px;
+	margin-top: 0px;
 	margin-bottom: 0px;
+}
+#topmenu a {
+display: block;
+color: #fff;
+padding: 0 10px;
+
+}
+
+#topmenu > li:hover > a,
+#topmenu li.current-menu-item a {
+	color: #000;
+}
+#topmenu ul {
+display: none;
+position: absolute;
+top: 40px;
+left: 0;
+background: none;
+width: 120px;
+z-index: 9001;
+border: 1px solid #eee;
+border-top: none;
+font-size: 12px;
 }
 
 nav#top {
 background: transparent !important;
 border-bottom: 0px solid #e5e5e5 !important;
--webkit-box-shadow: 0 2px 0 rgba(0, 0, 0, 0.55) !important;
--moz-box-shadow: 0 0px 0 rgba(0, 0, 0, 0.55) !important;
-box-shadow: 0 0px 0 rgba(0, 0, 0, 0.55) !important;
+-webkit-box-shadow: 0 2px 0 rgba(0, 0, 0, 0.15) !important;
+-moz-box-shadow: 0 0px 0 rgba(0, 0, 0, 0.15) !important;
+box-shadow: 0 0px 0 rgba(0, 0, 0, 0.15) !important;
 }
 #searchf {
 margin: 0;

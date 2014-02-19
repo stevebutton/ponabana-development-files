@@ -23,10 +23,13 @@
 			<div class="sixteen columns">
 				<?php g7_menu('topmenu'); ?>
 				<?php if (g7_option('header_text')) : ?>
+                
 				<div id="intro">
 					<?php echo do_shortcode(g7_option('header_text')); ?>
 				</div>
+                
 				<?php endif; ?>
+            
 			</div>
 		</div>
 	</nav>
