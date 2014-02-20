@@ -83,7 +83,6 @@ body > header {
 display: block;
 color: #fff;
 padding: 0 10px;
-
 }
 
 #topmenu > li:hover > a,
@@ -96,7 +95,7 @@ position: absolute;
 top: 40px;
 left: 0;
 background: none;
-width: 120px;
+width: 160px;
 z-index: 9001;
 border: 1px solid #eee;
 border-top: none;
