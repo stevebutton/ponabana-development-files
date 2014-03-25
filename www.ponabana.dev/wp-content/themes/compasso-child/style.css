@@ -10,6 +10,13 @@ Template: compasso
 
 @import url("../compasso/style.css");
 
+#intro {
+text-align: right;
+line-height: 40px;
+font-size: 12px;
+color: #fff;
+}
+
 /* override the body font size */
 body {
 	font-size: 15px;
