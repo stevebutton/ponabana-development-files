@@ -21,6 +21,10 @@
 	<nav id="top">
 		<div class="container clearfix">
 			<div class="sixteen columns">
+             <a href="https://www.facebook.com/pages/Unicef-RDC/149925238389509" target="_blank"><img src="/gfx/facebook-icon.png" width="32" height="32" /></a>
+
+<a href="http://www.youtube.com/user/unicefrdc2012" target="_blank"><img src="/gfx/youtube-icon.png" width="32" height="32" /></a>
+<a href="https://twitter.com/UNICEFDRC" target="_blank"><img src="/gfx/twitter-icon.png" width="32" height="32" /></a>
 				<?php g7_menu('topmenu'); ?>
 				<?php if (g7_option('header_text')) : ?>
                 
