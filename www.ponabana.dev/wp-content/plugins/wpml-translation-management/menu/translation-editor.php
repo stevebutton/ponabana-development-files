@@ -11,6 +11,10 @@ $rtl_translation = $sitepress->is_rtl($job->language_code);
 $rtl_original_attribute = $rtl_original ? ' dir="rtl"' : ' dir="ltr"';
 $rtl_translation_attribute = $rtl_translation ? ' dir="rtl"' : ' dir="ltr"';
 
+require_once(ABSPATH . 'wp-admin/includes/image.php');
+require_once(ABSPATH . 'wp-admin/includes/file.php');
+require_once(ABSPATH . 'wp-admin/includes/media.php');
+
 ?>
 <div class="wrap icl-translation-editor">
     <div id="icon-wpml" class="icon32"><br /></div>
@@ -19,6 +23,7 @@ $rtl_translation_attribute = $rtl_translation ? ' dir="rtl"' : ' dir="ltr"';
     <?php do_action('icl_tm_messages'); ?>
     <?php 
     $opost = get_post($job->original_doc_id);
+    
     if(!empty($opost) && ($opost->post_status == 'draft' || $opost->post_status == 'private') && $opost->post_author != $current_user->data->ID){
         $elink1 = '<i>';
         $elink2 = '</i>';
@@ -111,7 +116,7 @@ $rtl_translation_attribute = $rtl_translation ? ' dir="rtl"' : ' dir="ltr"';
                             <div id="poststuff">
                             <?php 
                                 global $post;
-                                if(is_null($post)) $post = clone $opost;
+                                if(is_null($post) && !is_null($opost)) $post = clone $opost;
                                 if(version_compare($wp_version, '3.3', '>=')){
                                     $settings = array(
                                         'media_buttons'     => false,
@@ -139,7 +144,7 @@ $rtl_translation_attribute = $rtl_translation ? ' dir="rtl"' : ' dir="ltr"';
                                     $icl_tm_f_translated = false;
                                 }
                             ?>
-                            <label><input class="icl_multiple" type="text" name="fields[<?php echo htmlspecialchars($element->field_type) 
+                            <label><input class="icl_multiple" type="text" name="fields[<?php echo esc_attr($element->field_type)
                                 ?>][data][<?php echo $k ?>]" value="<?php if(isset($icl_tm_translated_content[$k])) 
                                     echo esc_attr($icl_tm_translated_content[$k]); ?>"<?php echo $rtl_translation_attribute; ?> /></label>
                             <?php if($icl_tm_f_translated): ?>
@@ -149,7 +154,7 @@ $rtl_translation_attribute = $rtl_translation ? ' dir="rtl"' : ' dir="ltr"';
                             
                             <?php // CASE 3 - multiple lines *********************** ?>         
                             <?php elseif(0 === strpos($element->field_type, 'field-') && $element_field_style == 1): ?>
-                                <textarea style="width:100%;" name="fields[<?php echo htmlspecialchars($element->field_type) ?>][data]"<?php 
+                                <textarea style="width:100%;" name="fields[<?php echo esc_attr($element->field_type) ?>][data]"<?php
                                     echo $rtl_translation_attribute; ?>><?php echo esc_html($icl_tm_translated_content); ?></textarea>
 
                             <?php // CASE 4 - wysiwyg *********************** ?>         
@@ -163,19 +168,19 @@ $rtl_translation_attribute = $rtl_translation ? ' dir="rtl"' : ' dir="ltr"';
                                         wp_editor($icl_tm_translated_content, 'fields['.$element->field_type.'][data]', $settings);
                                     }else{                                        
                                         ?>
-                                        <textarea style="width:100%;" name="fields[<?php echo htmlspecialchars($element->field_type) ?>][data]"<?php 
+                                        <textarea style="width:100%;" name="fields[<?php echo esc_attr($element->field_type) ?>][data]"<?php
                                     echo $rtl_translation_attribute; ?>><?php echo esc_html($icl_tm_translated_content); ?></textarea>
                                         <?php 
                                     }
                             ?>
                             <?php // CASE 5 - one-liner *********************** ?>         
                             <?php else: ?>
-                            <label><input type="text" name="fields[<?php echo htmlspecialchars($element->field_type) ?>][data]" value="<?php 
+                            <label><input type="text" name="fields[<?php echo esc_attr($element->field_type) ?>][data]" value="<?php
                                 echo esc_attr($icl_tm_translated_content); ?>"<?php echo $rtl_translation_attribute; ?> /></label>
                             <?php endif; ?> 
                             
                             <p><label><input class="icl_tm_finished<?php if($element->field_format == 'csv_base64'): ?> icl_tmf_multiple<?php endif;
-                                ?>" type="checkbox" name="fields[<?php echo htmlspecialchars($element->field_type) ?>][finished]" value="1" <?php 
+                                ?>" type="checkbox" name="fields[<?php echo esc_attr($element->field_type) ?>][finished]" value="1" <?php
                                 if($element->field_finished): ?>checked="checked"<?php endif;?> />&nbsp;<?php 
                                 _e('This translation is finished.', 'wpml-translation-management')?></label>                                
                                 <span class="icl_tm_error" style="display: none;"><?php _e('This field cannot be empty', 'wpml-translation-management') ?></span>
@@ -203,7 +208,7 @@ $rtl_translation_attribute = $rtl_translation ? ' dir="rtl"' : ' dir="ltr"';
                                             "SELECT t.name, x.description FROM {$wpdb->terms} t 
                                                 JOIN {$wpdb->term_taxonomy} x ON  x.term_id = t.term_id
                                             WHERE description<>'' && x.taxonomy=%s 
-                                                AND t.name IN ('".join("','", $wpdb->escape($icl_tm_original_content))."')",
+                                                AND t.name IN ('".join("','", esc_sql($icl_tm_original_content))."')",
                                             $term_taxonomy
                                         ));
                                         $term_descriptions = array();
@@ -251,8 +256,8 @@ $rtl_translation_attribute = $rtl_translation ? ' dir="rtl"' : ' dir="ltr"';
                             </div>
                             <?php /* ORIGINAL CONTENT */ ?>
                             
-                            <input type="hidden" name="fields[<?php echo htmlspecialchars($element->field_type) ?>][format]" value="<?php echo $element->field_format ?>" />
-                            <input type="hidden" name="fields[<?php echo htmlspecialchars($element->field_type) ?>][tid]" value="<?php echo $element->tid ?>" />
+                            <input type="hidden" name="fields[<?php echo esc_attr($element->field_type) ?>][format]" value="<?php echo $element->field_format ?>" />
+                            <input type="hidden" name="fields[<?php echo esc_attr($element->field_type) ?>][tid]" value="<?php echo $element->tid ?>" />
                             
                             <?php if(!$element->field_finished && !empty($job->prev_version)): ?>                            
                                 <?php 
