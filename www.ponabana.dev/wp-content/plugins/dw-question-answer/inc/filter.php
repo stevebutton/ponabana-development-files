@@ -20,56 +20,7 @@ class DWQA_Filter {
 
     // Methods 
 
-    public function generate_pagenavi(){
-        if( !isset($_POST['nonce']) ) {
-            wp_die( 0 );
-        }
-        check_ajax_referer( '_dwqa_filter_nonce', 'nonce' );
-
-        if( !isset($_POST['type']) ) {
-            wp_die( 0 );
-        }
-        // Make an query for
-        global $wpdb;
-        $this->filter = wp_parse_args( $_POST,$this->filter );
-        $questions = $this->get_questions(false);
-        // Print content of questions
-        if( ! empty($questions) ) {
-            global $post;
-            $total = count( $questions );
-
-            $pages = ceil( $total / $this->filter['posts_per_page'] );
-
-            if( $pages > 1 ) {
-        ?>
-            <ul data-pages="<?php echo $pages; ?>" >
-                <?php  
-                    $i = 0;
-                    echo '<li class="prev';
-                    if( $i == 0 ) {
-                        echo ' hide';
-                    }
-                    echo '"><a href="javascript:void(0);">Prev</a></li>';
-                    $link = get_post_type_archive_link( 'dwqa-question' );
-                    for ($i=1; $i <= $pages; $i++) { 
-                        if( $pages > 5 ) {
-                            if( $i > 5 ) {
-                                continue;
-                            }
-                        }
-                        if( $i == 1 ) {
-                            echo '<li class="active"><a href="'.$link.'">'.$i.'</a></li>';
-                        }else{
-                            echo '<li><a href="'.add_query_arg('paged',$i,$link).'">'.$i.'</a></li>';
-                        }
-                    }
-                ?>
-                <li class="next"><a href="javascript:void(0);"><?php _e('Next','dwqa') ?></a></li>
-            </ul>
-        <?php } 
-        } 
-        wp_die( );
-    }
+    
     /**
      * AJAX: To make filter questions for plugins
      * @return string JSON
@@ -107,10 +58,14 @@ class DWQA_Filter {
             $pages_number = ceil( $pages_total / (int) $this->filter['posts_per_page'] );
             $start_page = isset($this->filter['paged']) && $this->filter['paged'] > 2 ? $this->filter['paged'] - 2 : 1;
             if( $pages_number > 1 ) {
+                    $link = get_post_type_archive_link( 'dwqa-question' );
                 ob_start();
                     echo '<ul data-pages="'.$pages_number.'" >';
-                    echo '<li class="prev' .( $this->filter['paged'] == 1 ? ' hide' : '' ).'"><a href="javascript:void(0);">Prev</a></li>';
-                    $link = get_post_type_archive_link( 'dwqa-question' );
+                    echo '<li class="prev' .( $this->filter['paged'] == 1 ? ' dwqa-hide' : '' ).'"><a href="javascript:void(0);">Prev</a></li>';
+                    
+                    if( $start_page > 1 ) {
+                        echo '<li><a href="'.add_query_arg('paged',1,$link).'">1</a></li><li class="dot"><span>...</span></li>';
+                    }
                     for ($i=$start_page; $i < $start_page + 5; $i++) { 
                         if( $pages_number < $i ) {
                             break;
@@ -121,7 +76,13 @@ class DWQA_Filter {
                             echo '<li><a href="'.add_query_arg('paged',$i,$link).'">'.$i.'</a></li>';
                         }
                     }
-                    echo '<li class="next'.( $this->filter['paged'] == $pages_number ? ' hide' : '' ).'"><a href="javascript:void(0);">'.__('Next','dwqa').'</a></li>';
+
+                    if( $i - 1 < $pages_number ) {
+                        echo '<li class="dot"><span>...</span></li><li><a href="'.add_query_arg('paged',$pages_number,$link).'"> '.$pages_number.'</a></li>';
+                    }
+                    echo '<li class="next'.( $this->filter['paged'] == $pages_number ? ' dwqa-hide' : '' ).'"><a href="javascript:void(0);">'.__('Next','dwqa').'</a></li>';
+
+                    
                     echo '</ul>';
                 $pagenavigation = ob_get_contents();
                 ob_end_clean();
@@ -136,6 +97,9 @@ class DWQA_Filter {
 
         } else { // Notthing found
             ob_start();
+            if( ! dwqa_current_user_can('read_question') ) {
+                echo '<div class="alert">'.__('You do not have permission to view questions','dwqa').'</div>';
+            }
             echo '<p class="not-found">';
              _e('Sorry, but nothing matched your filter. ', 'dwqa' );
              if( is_user_logged_in() ) {
@@ -143,12 +107,19 @@ class DWQA_Filter {
                 if( isset($dwqa_options['pages']['submit-question']) ) {
                     $submit_link = get_permalink( $dwqa_options['pages']['submit-question'] );
                     if( $submit_link ) {
-                        _e('You can ask question <a href="'.$submit_link.'">here</a>', 'dwqa' );
+                        printf('%s <a href="">%s</a>',
+                            __('You can ask question','dwqa'),
+                            $submit_link,
+                            __('here','dwqa')
+                        );
                     }
                 }
              } else {
-                _e('Please <a href="'.wp_login_url( get_post_type_archive_link( 'dwqa-question' ) ).'">Login</a>', 'dwqa' );
-
+                printf('%s <a href="%s">%s</a>',
+                    __('Please','dwqa'),
+                    wp_login_url( get_post_type_archive_link( 'dwqa-question' ) ),
+                    __('Login','dwqa')
+                );
                 $register_link = wp_register('', '',false);
                 if( ! empty($register_link) && $register_link  ) {
                     echo __(' or','dwqa').' '.$register_link;
@@ -182,11 +153,13 @@ class DWQA_Filter {
         if( is_user_logged_in() ) {
             $status = 'publish,private';
         }
+        $sticky_questions = get_option( 'dwqa_sticky_questions', array() );
         $args = array(
-            'numberposts'       => $number,
+            'posts_per_page'       => $number,
             'offset'            => $offset,
             'post_type'         => 'dwqa-question',
-            'suppress_filters'  => false
+            'suppress_filters'  => false,
+            'post__not_in'      => $sticky_questions
         );
         $args['order'] = ( $this->filter['order'] && $this->filter['order'] != 'ASC' ? 'DESC' : 'ASC' );
 
@@ -392,16 +365,26 @@ class DWQA_Filter {
             ) ) ;
         }
 
+        $status = 'publish';
+        if( is_user_logged_in() && ( dwqa_current_user_can('edit_question') || dwqa_current_user_can('edit_answer') ) ) {
+            $status = array( 'publish', 'private' );
+        }
 
         $query = new WP_Query( array(
             'post_type' => 'dwqa-question',
             'posts_per_page'    => 6,
-            'post_status'   => 'publish',
+            'post_status'   => $status,
             's'         => $_POST['title']
         ) );
-        if( $query->have_posts() ) {
+        query_posts( array(
+            'post_type' => 'dwqa-question',
+            'posts_per_page'    => 6,
+            'post_status'   => $status,
+            's'         => $_POST['title']
+        )  );
+        if( have_posts() ) {
             $html = '';
-            while ($query->have_posts()) { $query->the_post();
+            while (have_posts()) { the_post();
                 $words = explode(' ', $_POST['title']);
                 $title = get_the_title();
                 foreach ($words as $w) {
@@ -410,11 +393,13 @@ class DWQA_Filter {
                 }
                 $html .= '<li><a href="'.get_permalink( get_the_ID() ).'" >'.$title.'</a>';
             }
+            wp_reset_query();
             wp_send_json_success( array(
                 'number'    => $query->post_count,
                 'html'      => $html
             ) );
         } else {
+            wp_reset_query();
             wp_send_json_error( array( 'error' => 'not found' ) );
         }
     }
@@ -423,10 +408,6 @@ class DWQA_Filter {
         //Init
         $this->tb_posts = $wpdb->prefix . 'posts';
         $this->tb_postmeta = $wpdb->prefix . 'postmeta';
-
-        add_action( 'wp_ajax_dwqa-pagenavi-reset', array( $this, 'generate_pagenavi' ) );
-        add_action( 'wp_ajax_nopriv_dwqa-pagenavi-reset', array( $this, 'generate_pagenavi' ) );
-
         add_action( 'wp_ajax_dwqa-filter-question', array( $this, 'filter_question' ) );
         add_action( 'wp_ajax_nopriv_dwqa-filter-question', array( $this, 'filter_question' ) );
 
@@ -436,6 +417,7 @@ class DWQA_Filter {
     }
 
 }
+global $dwqa_filter;
 $dwqa_filter = new DWQA_Filter();
 
 
