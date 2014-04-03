@@ -18,7 +18,9 @@ class WPML_String_Translation
 		add_action( 'init', array( 'WPML_Slug_Translation', 'init' ) );
 
 		//Handle Admin Notices
-		add_action( 'plugins_loaded', array( __CLASS__, '_st_warnings' ) );
+		if(!( in_array( $GLOBALS['pagenow'], array( 'wp-login.php', 'wp-register.php' ) ) )) {
+			add_action( 'plugins_loaded', array( __CLASS__, '_st_warnings' ) );
+		}
 
 		add_action( 'icl_ajx_custom_call', array( $this, 'ajax_calls' ), 10, 2 );
 	}
@@ -94,9 +96,10 @@ class WPML_String_Translation
 	static function _st_warnings()
 	{
 		if(!class_exists('ICL_AdminNotifier')) return;
-		
+
 		global $sitepress, $sitepress_settings;
 		if(!isset($sitepress)) return;
+		if(method_exists($sitepress, 'check_settings_integrity') && !SitePress::check_settings_integrity()) return;
 
 		if(!isset($sitepress_settings[ 'st' ][ 'strings_language' ] )) {
 			$sitepress_settings = $sitepress->get_settings();
@@ -115,6 +118,7 @@ class WPML_String_Translation
 
 	static function _st_default_language_warning()
 	{
+
 		ICL_AdminNotifier::removeMessage( '_st_default_and_st_language_warning' );
 		static $called = false;
 		if ( !$called ) {
@@ -156,11 +160,12 @@ class WPML_String_Translation
 		if(isset($sitepress_settings[ 'st' ][ 'strings_language' ] )) {
 			ICL_AdminNotifier::removeMessage( '_st_default_language_warning' );
 			static $called = false;
-			if ( !$called ) {
+			if (defined('WPML_ST_FOLDER') && !$called ) {
 				$st_language_code = $sitepress_settings[ 'st' ][ 'strings_language' ];
 				$st_language = $sitepress->get_display_language_name($st_language_code, $sitepress->get_admin_language());
 
-				$st_page_url = admin_url('admin.php?page=wpml-string-translation/menu/string-translation.php');
+				$page = WPML_ST_FOLDER . '/menu/string-translation.php';
+				$st_page_url = admin_url('admin.php?page=' . $page);
 
 				$message = 'The strings language in your site is set to %s instead of English. ';
 				$message .= 'This means that all English texts that are hard-coded in PHP will appear when displaying content in %s.';
@@ -296,13 +301,16 @@ class WPML_String_Translation
 
 	function menu()
 	{
+		global $sitepress;
+		if(!isset($sitepress) || (method_exists($sitepress,'get_setting') && !$sitepress->get_setting( 'setup_complete' ))) return;
+
 		global $sitepress_settings, $wpdb;
 
 		if ( ( !isset( $sitepress_settings[ 'existing_content_language_verified' ] ) || !$sitepress_settings[ 'existing_content_language_verified' ] ) ) {
 			return;
 		}
 
-		if ( current_user_can( 'manage_options' ) ) {
+		if ( current_user_can( 'wpml_manage_string_translation' ) ) {
 			$top_page = apply_filters( 'icl_menu_main_page', basename( ICL_PLUGIN_PATH ) . '/menu/languages.php' );
 			if ( current_user_can( 'translate' ) ) {
 				$_cap = 'translate';
@@ -312,7 +320,7 @@ class WPML_String_Translation
 
 			add_submenu_page( $top_page,
 							  __( 'String Translation', 'wpml-string-translation' ), __( 'String Translation', 'wpml-string-translation' ),
-							  $_cap, WPML_ST_FOLDER . '/menu/string-translation.php' );
+							  'wpml_manage_string_translation', WPML_ST_FOLDER . '/menu/string-translation.php' );
 		} else {
 			$user_lang_pairs = get_user_meta( get_current_user_id(), $wpdb->prefix . 'language_pairs', true );
 			if ( isset( $sitepress_settings[ 'st' ][ 'strings_language' ] ) && !empty( $user_lang_pairs[ $sitepress_settings[ 'st' ][ 'strings_language' ] ] ) ) {

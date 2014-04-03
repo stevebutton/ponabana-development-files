@@ -1,3 +1,6 @@
+<?php
+// @use WPML_Media::menu_content
+?>
 <script type="text/javascript">
 	var wpml_media_ajxloaderimg_src = '<?php echo WPML_MEDIA_URL ?>/res/img/ajax-loader.gif';
 	var wpml_media_ajxloaderimg = '<img src="' + wpml_media_ajxloaderimg_src + '" alt="loading" width="16" height="16" />';

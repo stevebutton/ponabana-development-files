@@ -5,12 +5,12 @@ Plugin URI: http://wpml.org/
 Description: Adds CMS navigation elements to sites built with WPML. <a href="http://wpml.org">Documentation</a>.
 Author: ICanLocalize
 Author URI: http://wpml.org
-Version: 1.4
+Version: 1.4.2
 */
 
 if(defined('WPML_CMS_NAV_VERSION')) return;
 
-define('WPML_CMS_NAV_VERSION', '1.4');
+define('WPML_CMS_NAV_VERSION', '1.4.2');
 define('WPML_CMS_NAV_PLUGIN_PATH', dirname(__FILE__));
 
 require WPML_CMS_NAV_PLUGIN_PATH . '/inc/constants.php';
@@ -31,6 +31,4 @@ if ( function_exists('is_multisite') && is_multisite() ) {
 register_activation_hook( WP_PLUGIN_DIR . '/' . WPML_CMS_NAV_PLUGIN_FOLDER . '/plugin.php', array($iclCMSNavigation,'plugin_activate') );
 register_deactivation_hook( WP_PLUGIN_DIR . '/' . WPML_CMS_NAV_PLUGIN_FOLDER . '/plugin.php', array($iclCMSNavigation,'plugin_deactivate') );
 
-add_filter('plugin_action_links', array($iclCMSNavigation, 'plugin_action_links'), 10, 2); 
-
-?>
+add_filter('plugin_action_links', array($iclCMSNavigation, 'plugin_action_links'), 10, 2);

@@ -35,16 +35,17 @@ class WPML_Media
 
 		$this->overrides();
 
-		global $wpdb, $sitepress, $pagenow;
+		global $wpdb, $sitepress, $sitepress_settings, $pagenow;
 
 		if(!isset($sitepress)) return null;
 
 		$active_languages = $sitepress->get_active_languages();
 		if ( !self::get_setting( 'starting_help' ) && ( empty( $_GET[ 'page' ] ) || $_GET[ 'page' ] != 'wpml-media' ) ) {
 
-			$total_attachments = $wpdb->get_var( "
-                SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = 'attachment' AND ID NOT IN
-                (SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = 'wpml_media_processed')" );
+			$total_attachments_prepared = $wpdb->prepare("
+                SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = %s AND ID NOT IN
+                (SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s)", array('attachment', 'wpml_media_processed'));
+			$total_attachments = $wpdb->get_var( $total_attachments_prepared );
 
 			if ( $total_attachments ) {
 				if ( count( $active_languages ) > 1 ) {
@@ -75,14 +76,16 @@ class WPML_Media
 
 				add_action( 'save_post', array( $this, 'save_post_actions' ), 10, 2 );
 				add_action( 'icl_make_duplicate', array( $this, 'make_duplicate' ), 10, 4 );
+
+				add_action( 'added_post_meta', array( $this, 'added_post_meta' ), 10, 4 );
 				add_action( 'updated_postmeta', array( $this, 'updated_postmeta' ), 10, 4 );
 
 				add_action( 'add_attachment', array( $this, 'save_attachment_actions' ) );
 				add_action( 'add_attachment', array( $this, 'save_translated_attachments' ) );
 				add_action( 'edit_attachment', array( $this, 'save_attachment_actions' ) );
 
-				// Attachment filters
-				add_filter( 'wp_update_attachment_metadata', array( $this, 'update_attachment_metadata' ), 10, 2 );
+				// Attachment metadata hooks
+				add_filter( 'wp_generate_attachment_metadata', array( $this, 'wp_generate_attachment_metadata' ), 10, 2 );
 
 				//wp_delete_file file filter
 				add_filter( 'wp_delete_file', array( $this, 'delete_file' ) );
@@ -119,6 +122,11 @@ class WPML_Media
 			}
 
 			add_action( 'icl_pro_translation_saved', array( $this, 'icl_pro_translation_saved' ), 10, 1 );
+		} else {
+			if($sitepress_settings[ 'language_negotiation_type' ] == 2) {
+				// Translate media url when in front-end and only when using custom domain
+				add_filter( 'wp_get_attachment_url', array( $this, 'wp_get_attachment_url' ), 10, 2 );
+			}
 		}
 
 		add_filter( 'WPML_filter_link', array( $this, 'filter_link' ), 10, 2 );
@@ -131,7 +139,7 @@ class WPML_Media
 	{
 		global $action;
 
-		return ( isset( $action ) || $action == 'upload-plugin' || $action == 'upload-theme' );
+		return ( isset( $action ) && ($action == 'upload-plugin' || $action == 'upload-theme') );
 	}
 
 	function plugin_localization()
@@ -171,16 +179,20 @@ class WPML_Media
 
 		//Removes the WPML language metabox on media and replace it with the custom one
 		remove_action( 'admin_head', array( $sitepress, 'post_edit_language_options' ) );
-		if ( $pagenow == 'post.php' || $pagenow == 'post-new.php' ) {
+		if ( $pagenow == 'post.php' || $pagenow == 'post-new.php' || $pagenow == 'edit.php' ) {
 			add_action( 'admin_head', array( $this, 'post_edit_language_options' ) );
 		}
 
-		//Removes the default WPML post_join and post_where filters
-		remove_action( 'posts_join', array( $sitepress, 'posts_join_filter' ), 10 );
-		remove_action( 'posts_where', array( $sitepress, 'posts_where_filter' ), 10 );
-		//... and use the custom ones
-		add_filter( 'posts_join', array( $this, 'posts_join_filter' ), 10, 2 );
-		add_filter( 'posts_where', array( $this, 'posts_where_filter' ), 10, 2 );
+		// @deprecated Use Core methods (and filters)
+		// @since 3.1
+		if(defined('ICL_SITEPRESS_VERSION') && version_compare(ICL_SITEPRESS_VERSION, '3.0', '<=' )) {
+			//Removes the default WPML post_join and post_where filters
+			remove_action( 'posts_join', array( $sitepress, 'posts_join_filter' ), 10 );
+			remove_action( 'posts_where', array( $sitepress, 'posts_where_filter' ), 10 );
+			//... and use the custom ones
+			add_filter( 'posts_join', array( $this, 'posts_join_filter' ), 10, 2 );
+			add_filter( 'posts_where', array( $this, 'posts_where_filter' ), 10, 2 );
+		}
 	}
 
 	public static function get_setting( $name, $default = false )
@@ -278,7 +290,7 @@ class WPML_Media
 		global $wpdb;
 
 		$response = array();
-		$wpdb->query( "DELETE FROM {$wpdb->postmeta} WHERE meta_key='wpml_media_processed'" );
+		$wpdb->delete( $wpdb->postmeta, array( 'meta_key' => 'wpml_media_processed' ) );
 
 		$response[ 'message' ] = __( 'Started...', 'wpml-media' );
 
@@ -294,9 +306,10 @@ class WPML_Media
 		$limit            = 10;
 
 		$response    = array();
-		$attachments = $wpdb->get_col( "
-            SELECT SQL_CALC_FOUND_ROWS ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND ID NOT IN
-            (SELECT element_id FROM {$wpdb->prefix}icl_translations WHERE element_type='post_attachment') LIMIT {$limit}" );
+		$attachments_prepared = $wpdb->prepare( "
+            SELECT SQL_CALC_FOUND_ROWS ID FROM {$wpdb->posts} WHERE post_type = %s AND ID NOT IN
+            (SELECT element_id FROM {$wpdb->prefix}icl_translations WHERE element_type=%s) LIMIT %d", array( 'attachment', 'post_attachment', $limit ) );
+		$attachments = $wpdb->get_col( $attachments_prepared );
 
 		$found = $wpdb->get_var( "SELECT FOUND_ROWS()" );
 
@@ -330,24 +343,21 @@ class WPML_Media
             	ON t.element_id = p1.ID
             LEFT JOIN {$wpdb->prefix}icl_translations tt
             	ON t.trid = tt.trid
-			WHERE t.element_type LIKE 'post_attachment'
+			WHERE t.element_type = 'post_attachment'
 				AND t.source_language_code IS null
 			GROUP BY p1.ID, p1.post_parent
-			HAVING count(tt.language_code) < $active_languages
-            LIMIT {$limit}
+			HAVING count(tt.language_code) < %d
+            LIMIT %d
         ";
-		$attachments      = $wpdb->get_results( $sql );
+		$sql_prepared = $wpdb->prepare($sql, array($active_languages, $limit));
+		$attachments      = $wpdb->get_results( $sql_prepared );
 
 		$found = $wpdb->get_var( "SELECT FOUND_ROWS()" );
 
 		if ( $attachments ) {
 			foreach ( $attachments as $attachment ) {
 				$lang = $sitepress->get_element_language_details( $attachment->ID, 'post_attachment' );
-				if ( $lang->language_code == $sitepress->get_default_language() ) {
-
-					$this->translate_attachments( $attachment->ID, $lang->language_code );
-
-				}
+				$this->translate_attachments( $attachment->ID, $lang->language_code );
 			}
 		}
 
@@ -369,29 +379,38 @@ class WPML_Media
 
 			global $sitepress;
 
-			$default_language_attachment_id = false;
+			$original_attachment_id = false;
 			$trid                           = $sitepress->get_element_trid( $attachment_id, 'post_attachment' );
 			if ( $trid ) {
 				$translations         = $sitepress->get_element_translations( $trid, 'post_attachment', true, true );
 				$translated_languages = false;
+				$default_language = $sitepress->get_default_language();
+				$default_language_attachment_id = false;
 				foreach ( $translations as $translation ) {
 					//Get the default language attachment ID
-					if ( $translation->language_code == $sitepress->get_default_language() ) {
+					if ( $translation->original ) {
+						$original_attachment_id = $translation->element_id;
+					}
+					if($translation->language_code == $default_language) {
 						$default_language_attachment_id = $translation->element_id;
 					}
 					//Store already translated versions
 					$translated_languages[ ] = $translation->language_code;
 				}
-				// Attachment in default language is missing
-				if ( !$default_language_attachment_id && $source_language != $sitepress->get_default_language() ) {
+				// Original attachment is missing
+				if ( !$original_attachment_id ) {
 					$attachment = get_post( $attachment_id );
-					self::create_duplicate_attachment( $attachment_id, $attachment->post_parent, $sitepress->get_default_language() );
+					if(!$default_language_attachment_id) {
+						self::create_duplicate_attachment( $attachment_id, $attachment->post_parent, $default_language );
+					} else {
+						$sitepress->set_element_language_details($default_language_attachment_id, 'post_attachment', $trid, $default_language, null);
+					}
 					//Start over
-					$this->translate_attachments( $attachment_id, $source_language );
+					$this->translate_attachments( $attachment->ID, $source_language );
 				} else {
-					//Attachment in default language is present
-					if ( $default_language_attachment_id ) {
-						$original = get_post( $default_language_attachment_id );
+					//Original attachment is present
+					if ( $original_attachment_id ) {
+						$original = get_post( $original_attachment_id );
 						$codes    = array_keys( $sitepress->get_active_languages() );
 						foreach ( $codes as $code ) {
 							//If translation is not present, create it
@@ -406,7 +425,7 @@ class WPML_Media
 
 	}
 
-	function create_duplicate_attachment( $attachment_id, $parent_id, $target_language )
+	static function create_duplicate_attachment( $attachment_id, $parent_id, $target_language )
 	{
 		global $sitepress;
 
@@ -415,6 +434,9 @@ class WPML_Media
 
 		$trid            = $sitepress->get_element_trid( $attachment_id, 'post_attachment' );
 		$source_language = null;
+
+		$active_languages = $sitepress->get_active_languages();
+
 		if ( $trid ) {
 			//Get the source language of the attachment, just in case is from a language different than the default
 			$source_language         = $sitepress->get_language_for_element( $attachment_id, 'post_attachment' );
@@ -456,7 +478,7 @@ class WPML_Media
 		if ( $duplicated_attachment_id ) {
 			$post              = get_post( $duplicated_attachment_id );
 			$post->post_parent = $translated_parent_id;
-			if ( $this->is_valid_post_type( $post->post_type ) ) {
+			if ( self::is_valid_post_type( $post->post_type ) ) {
 				wp_update_post( $post );
 			}
 
@@ -477,39 +499,12 @@ class WPML_Media
 		$attached_file = get_post_meta( $attachment_id, '_wp_attached_file', true );
 		update_post_meta( $duplicated_attachment_id, '_wp_attached_file', $attached_file );
 
-		$attachment_metadata = get_post_meta( $attachment_id, '_wp_attachment_metadata', true );
-
-		//Update _wp_attachment_metadata FROM the original
-		if ( $attachment_metadata ) {
-			update_post_meta( $duplicated_attachment_id, '_wp_attachment_metadata', $attachment_metadata );
-		} else {
-			//Update _wp_attachment_metadata TO the original
-			$attachment_metadata = get_post_meta( $duplicated_attachment_id, '_wp_attachment_metadata', true );
-			if ( $attachment_metadata ) {
-				update_post_meta( $attachment_id, '_wp_attachment_metadata', $attachment_metadata );
-			} else {
-				//Tries to find the first _wp_attachment_metadata available, then updates all translations
-				$trid = $sitepress->get_element_trid( $attachment_id, 'post_attachment' );
-				if ( $trid ) {
-					$translations = $sitepress->get_element_translations( $trid, 'post_attachment', true, true );
-					foreach ( $translations as $translation ) {
-						$attachment_metadata = get_post_meta( $translation->element_id, '_wp_attachment_metadata', true );
-						if ( $attachment_metadata ) {
-							break;
-						}
-					}
-					if ( $attachment_metadata ) {
-						$this->update_attachment_metadata( $attachment_metadata, $attachment_id );
-					}
-				}
-			}
-		}
 		do_action( 'wpml_media_create_duplicate_attachment', $attachment_id, $duplicated_attachment_id );
 
 		return $duplicated_attachment_id;
 	}
 
-	function is_valid_post_type( $post_type )
+	static function is_valid_post_type( $post_type )
 	{
 		global $wp_post_types;
 
@@ -518,20 +513,48 @@ class WPML_Media
 		return in_array( $post_type, $post_types );
 	}
 
-	function update_attachment_metadata( $data, $attachment_id )
-	{
+	function update_attachment_metadata( $source_attachment_id ) {
 		global $sitepress;
+
+		$original_element_id = $sitepress->get_original_element_id( $source_attachment_id, 'post_attachment', false, false, true );
+		if ( $original_element_id ) {
+			$metadata = wp_get_attachment_metadata( $original_element_id );
+			$this->synchronize_attachment_metadata( $metadata, $original_element_id );
+		}
+	}
+
+	function wp_generate_attachment_metadata( $metadata, $attachment_id )
+	{
+		$this->synchronize_attachment_metadata($metadata, $attachment_id);
+
+		return $metadata;
+	}
+
+	function added_post_meta( $meta_id, $object_id, $meta_key, $_meta_value )
+	{
+		if ( $meta_key != '_wp_attachment_metadata' ) {
+			return;
+		}
+
+		$attachment_id = $object_id;
+		$metadata      = $_meta_value;
+
+		$this->synchronize_attachment_metadata( $metadata, $attachment_id );
+	}
+
+	function synchronize_attachment_metadata( $metadata, $attachment_id ) {
+
+		global $sitepress;
+		//Update _wp_attachment_metadata to all translations (excluding the current one)
 		$trid = $sitepress->get_element_trid( $attachment_id, 'post_attachment' );
 		if ( $trid ) {
-			$translations = $sitepress->get_element_translations( $trid, 'post_attachment', true, true );
+			$translations = $sitepress->get_element_translations( $trid, 'post_attachment', true, true, true );
 			foreach ( $translations as $translation ) {
-				if ( $translation->language_code != $sitepress->get_default_language() ) {
-					update_post_meta( $translation->element_id, '_wp_attachment_metadata', $data );
+				if ( $translation->element_id != $attachment_id ) {
+					update_post_meta( $translation->element_id, '_wp_attachment_metadata', $metadata );
 				}
 			}
 		}
-
-		return $data;
 	}
 
 	function batch_duplicate_media()
@@ -542,14 +565,15 @@ class WPML_Media
 
 		$response = array();
 
-		$attachments = $wpdb->get_results( "
+		$attachments_prepared = $wpdb->prepare( "
             SELECT SQL_CALC_FOUND_ROWS p1.ID, p1.post_parent
             FROM {$wpdb->posts} p1
-            WHERE post_type = 'attachment'
+            WHERE post_type = %s
             AND ID NOT IN
-            	(SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = 'wpml_media_processed')
-            ORDER BY p1.ID ASC LIMIT {$limit}
-        " );
+            	(SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s)
+            ORDER BY p1.ID ASC LIMIT %d", array('attachment', 'wpml_media_processed', $limit));
+
+		$attachments = $wpdb->get_results( $attachments_prepared );
 		$found       = $wpdb->get_var( "SELECT FOUND_ROWS()" );
 
 		if ( $attachments ) {
@@ -581,19 +605,23 @@ class WPML_Media
 		if ( $attachment->post_parent && !in_array( $attachment->post_parent, $parents_processed ) ) {
 
 			// see if we have translations.
-			$post_type = $wpdb->get_var( "SELECT post_type FROM {$wpdb->posts} WHERE ID = $attachment->post_parent" );
-			$trid      = $wpdb->get_var( "SELECT trid FROM {$wpdb->prefix}icl_translations WHERE element_id={$attachment->post_parent} AND element_type = 'post_$post_type'" );
+			$post_type_prepared = $wpdb->prepare("SELECT post_type FROM {$wpdb->posts} WHERE ID = %d", array($attachment->post_parent));
+			$post_type = $wpdb->get_var( $post_type_prepared );
+			$trid_prepared = $wpdb->prepare("SELECT trid FROM {$wpdb->prefix}icl_translations WHERE element_id=%d AND element_type = %d", array($attachment->post_parent, 'post_' . $post_type));
+			$trid      = $wpdb->get_var( $trid_prepared );
 			if ( $trid ) {
 
 				update_post_meta( $attachment->post_parent, '_wpml_media_duplicate', 1 );
 
-				$attachments = $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND post_parent = $attachment->post_parent" );
+				$attachments_prepared = $wpdb->prepare("SELECT ID FROM {$wpdb->posts} WHERE post_type = %s AND post_parent = %d", array('attachment', $attachment->post_parent));
+				$attachments = $wpdb->get_col( $attachments_prepared );
 
 				$translations = $sitepress->get_element_translations( $trid, 'post_' . $post_type );
 				foreach ( $translations as $translation ) {
 					if ( $translation->element_id && $translation->element_id != $attachment->post_parent ) {
 
-						$attachments_in_translation = $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND post_parent = $translation->element_id" );
+						$attachments_in_translation_prepared = $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE post_type = %s AND post_parent = %d", array('attachment', $translation->element_id));
+						$attachments_in_translation = $wpdb->get_col( $attachments_in_translation_prepared );
 						if ( sizeof( $attachments_in_translation ) == 0 ) {
 							// only duplicate attachments if there a none already.
 							foreach ( $attachments as $attachment_id ) {
@@ -630,7 +658,7 @@ class WPML_Media
 
 		$response = array();
 
-		$found = $this->duplicate_featured_images( $limit );
+		$found = self::duplicate_featured_images( $limit );
 
 		$response[ 'left' ] = max( $found - $limit, 0 );
 		if ( $response[ 'left' ] ) {
@@ -649,11 +677,12 @@ class WPML_Media
 
 		$count = 0;
 
-		$featured_images_sql = "SELECT * FROM {$wpdb->postmeta} WHERE meta_key = '_thumbnail_id'";
+		$featured_images_sql = "SELECT * FROM {$wpdb->postmeta} WHERE meta_key = %s";
 		if ( $limit > 0 ) {
-			$featured_images_sql .= " LIMIT {$limit}";
+			$featured_images_sql .= " LIMIT %d";
 		}
-		$featured_images = $wpdb->get_results( $featured_images_sql );
+		$featured_images_sql_prepared = $wpdb->prepare($featured_images_sql, array('_thumbnail_id', $limit));
+		$featured_images = $wpdb->get_results( $featured_images_sql_prepared );
 		$processed       = $wpdb->get_var( "SELECT FOUND_ROWS()" );
 
 		$thumbnails = array();
@@ -664,9 +693,11 @@ class WPML_Media
 		if ( sizeof( $thumbnails ) ) {
 			//Posts IDs with found featured images
 			$post_ids = implode( ', ', array_keys( $thumbnails ) );
-			$posts    = $wpdb->get_results( "SELECT ID, post_type FROM {$wpdb->posts} WHERE ID IN ({$post_ids})" );
+			$posts_prepared = $wpdb->prepare("SELECT ID, post_type FROM {$wpdb->posts} WHERE ID IN ({$post_ids})", array());
+			$posts    = $wpdb->get_results( $posts_prepared );
 			foreach ( $posts as $post ) {
-				$row = $wpdb->get_row( "SELECT trid, source_language_code FROM {$wpdb->prefix}icl_translations WHERE element_id={$post->ID} AND element_type = 'post_$post->post_type'" );
+				$row_prepared = $wpdb->prepare("SELECT trid, source_language_code FROM {$wpdb->prefix}icl_translations WHERE element_id=%d AND element_type = %d", array($post->ID, 'post_' . $post->post_type));
+				$row = $wpdb->get_row( $row_prepared );
 				if ( $row && $row->trid && ( $row->source_language_code == null || $row->source_language_code == "" ) ) {
 					update_post_meta( $post->ID, '_wpml_media_featured', 1 );
 
@@ -705,12 +736,22 @@ class WPML_Media
 
 	function batch_mark_processed()
 	{
+		/** @var $wpdb WPDB */
 		global $wpdb;
 
-		$response = array();
-		$atts     = $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} WHERE post_type='attachment'" );
-		foreach ( $atts as $att ) {
-			update_post_meta( $att, 'wpml_media_processed', 1 );
+		$response    = array();
+		$attachments_prepared = $wpdb->prepare("SELECT ID FROM {$wpdb->posts} WHERE post_type=%s", array('attachment'));
+		$attachments = $wpdb->get_col( $attachments_prepared );
+		foreach ( $attachments as $attachment_id ) {
+
+			$find_meta_prepared = $wpdb->prepare("SELECT count(post_id) FROM {$wpdb->postmeta} WHERE meta_key=%s AND post_id = %d", array('wpml_media_processed', $attachment_id));
+			$meta_exists = $wpdb->get_var($find_meta_prepared);
+
+			if($meta_exists)  {
+				$wpdb->update($wpdb->postmeta, array('meta_value' => 1), array('meta_key' => 'wpml_media_processed', 'post_id' => $attachment_id));
+			} else {
+				$wpdb->insert($wpdb->postmeta, array('meta_value'=>1, 'post_id' => $attachment_id, 'meta_key' => 'wpml_media_processed'));
+			}
 		}
 
 		self::update_setting( 'starting_help', 1 );
@@ -720,15 +761,13 @@ class WPML_Media
 		echo json_encode( $response );
 
 		exit;
-
-
 	}
 
 	function ajax_set_post_thumbnail()
 	{
 		$post_id = isset( $_POST[ 'post_id' ] ) ? $_POST[ 'post_id' ] : false;
 
-		//$this->sync_attachments( $pidd, $post );
+//		$this->sync_attachments_metadata( $post_id );
 		$this->sync_post_thumbnail( $post_id );
 
 		//exit;
@@ -814,11 +853,11 @@ class WPML_Media
 	{
 		global $wpdb;
 
-		//$post_type = $wpdb->get_var("SELECT post_type FROM {$wpdb->posts} WHERE ID = " . $new_post_id);
 		$trid = $_POST[ 'trid' ];
 		$lang = $_POST[ 'lang' ];
 
-		$source_lang = $wpdb->get_var( "SELECT language_code FROM {$wpdb->prefix}icl_translations WHERE trid={$trid} AND source_language_code IS NULL" );
+		$source_lang_prepared = $wpdb->prepare( "SELECT language_code FROM {$wpdb->prefix}icl_translations WHERE trid=%d AND source_language_code IS NULL", array($trid));
+		$source_lang = $wpdb->get_var( $source_lang_prepared );
 
 		$this->duplicate_post_attachments( $new_post_id, $trid, $source_lang, $lang );
 	}
@@ -831,12 +870,14 @@ class WPML_Media
 		}
 
 		if ( !$source_lang ) {
-			$source_lang = $wpdb->get_var( "SELECT source_language_code FROM {$wpdb->prefix}icl_translations WHERE element_id = $pidd AND trid = $icl_trid" );
+			$source_lang_prepared = $wpdb->prepare( "SELECT source_language_code FROM {$wpdb->prefix}icl_translations WHERE element_id = %d AND trid=%d", array($pidd, $icl_trid));
+			$source_lang = $wpdb->get_var( $source_lang_prepared );
 		}
 
 		// exception for making duplicates. language info not set when this runs and creating the duplicated posts 1/3
 		if ( isset( $_POST[ 'icl_ajx_action' ] ) && $_POST[ 'icl_ajx_action' ] == 'make_duplicates' && isset( $_POST[ 'icl_post_language' ] ) ) {
-			$source_lang = $wpdb->get_var( $wpdb->prepare( "SELECT language_code FROM {$wpdb->prefix}icl_translations WHERE element_id = %d AND trid = %d", $_POST[ 'post_id' ], $icl_trid ) );
+			$source_lang_prepared = $wpdb->prepare( "SELECT language_code FROM {$wpdb->prefix}icl_translations WHERE element_id = %d AND trid = %d", array($_POST[ 'post_id' ], $icl_trid ));
+			$source_lang = $wpdb->get_var( $source_lang_prepared );
 			$lang        = $_POST[ 'icl_post_language' ];
 
 		}
@@ -847,7 +888,8 @@ class WPML_Media
 			$duplicate = get_post_meta( $pidd, '_wpml_media_duplicate', true );
 			$featured  = get_post_meta( $pidd, '_wpml_media_featured', true );
 			if ( $duplicate || $featured ) {
-				$translations = $wpdb->get_col( "SELECT element_id FROM {$wpdb->prefix}icl_translations WHERE trid = $icl_trid" );
+				$translations_prepared = $wpdb->prepare("SELECT element_id FROM {$wpdb->prefix}icl_translations WHERE trid = %d", array($icl_trid));
+				$translations = $wpdb->get_col( $translations_prepared );
 
 				foreach ( $translations as $element_id ) {
 					if ( $element_id && $element_id != $pidd ) {
@@ -857,10 +899,13 @@ class WPML_Media
 							$duplicate_t = get_post_meta( $element_id, '_wpml_media_duplicate', true );
 						}
 
-						$lang = $wpdb->get_var( "SELECT language_code FROM {$wpdb->prefix}icl_translations WHERE element_id = $element_id AND trid = $icl_trid" );
+						$lang_prepared = $wpdb->prepare( "SELECT language_code FROM {$wpdb->prefix}icl_translations WHERE element_id = %d AND trid = %d", array($element_id, $icl_trid ));
+						$lang = $wpdb->get_var( $lang_prepared );
 						if ( $duplicate_t || $duplicate_t == '' ) {
-							$source_attachments = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE post_parent = $pidd AND post_type = 'attachment'" );
-							$attachments        = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE post_parent = $element_id AND post_type = 'attachment'" );
+							$source_attachments_prepared = $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_parent = %d AND post_type = %s", array($pidd, 'attachment' ));
+							$source_attachments = $wpdb->get_col( $source_attachments_prepared );
+							$attachments_prepared = $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_parent = %d AND post_type = %s", array($element_id, 'attachment' ));
+							$attachments        = $wpdb->get_col( $attachments_prepared );
 
 							foreach ( $source_attachments as $source_attachment_id ) {
 								$found = false;
@@ -912,11 +957,13 @@ class WPML_Media
 			if ( isset( $_POST[ 'icl_ajx_action' ] ) && $_POST[ 'icl_ajx_action' ] == 'make_duplicates' ) {
 				$source_id = $_POST[ 'post_id' ];
 			} else {
-				$source_id = $wpdb->get_var( "SELECT element_id FROM {$wpdb->prefix}icl_translations WHERE language_code = '$source_lang' AND trid = $icl_trid" );
+				$source_id_prepared = $wpdb->prepare("SELECT element_id FROM {$wpdb->prefix}icl_translations WHERE language_code = %s AND trid = %d", array($source_lang, $icl_trid));
+				$source_id = $wpdb->get_var( $source_id_prepared );
 			}
 
 			if ( !$lang ) {
-				$lang = $wpdb->get_var( "SELECT language_code FROM {$wpdb->prefix}icl_translations WHERE element_id = $pidd AND trid = $icl_trid" );
+				$lang_prepared = $wpdb->prepare( "SELECT language_code FROM {$wpdb->prefix}icl_translations WHERE element_id = %d AND trid = %d", array($pidd, $icl_trid));
+				$lang = $wpdb->get_var( $lang_prepared );
 			}
 
 			// exception for making duplicates. language info not set when this runs and creating the duplicated posts 3/3
@@ -931,7 +978,8 @@ class WPML_Media
 			}
 
 			if ( $duplicate ) {
-				$source_attachments = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE post_parent = $source_id AND post_type = 'attachment'" );
+				$source_attachments_prepared = $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_parent = %d AND post_type = %s", array($source_id, 'attachment'));
+				$source_attachments = $wpdb->get_col( $source_attachments_prepared );
 
 				foreach ( $source_attachments as $source_attachment_id ) {
 					$translation_attachment_id = icl_object_id( $source_attachment_id, 'attachment', false, $lang );
@@ -979,11 +1027,18 @@ class WPML_Media
 	 * @param $pidd int
 	 * @param $post wp_post
 	 */
-	function save_post_actions( $pidd, $post )
-	{
+	function save_post_actions( $pidd, $post ) {
 		if ( $post->post_type != 'attachment' && $post->post_status != "auto-draft" ) {
 			$this->sync_attachments( $pidd, $post );
 			$this->sync_post_thumbnail( $pidd );
+		}
+
+		if ( $post->post_type == 'attachment' ) {
+			$metadata      = wp_get_attachment_metadata( $post->ID );
+			$attachment_id = $pidd;
+			if ( $metadata ) {
+				$this->synchronize_attachment_metadata( $metadata, $attachment_id );
+			}
 		}
 	}
 
@@ -998,7 +1053,8 @@ class WPML_Media
 
 		global $wpdb, $sitepress;
 
-		list( $post_type, $post_status ) = $wpdb->get_row( "SELECT post_type, post_status FROM {$wpdb->posts} WHERE ID = " . $pidd, ARRAY_N );
+		$posts_prepared = $wpdb->prepare("SELECT post_type, post_status FROM {$wpdb->posts} WHERE ID = %d", array($pidd));
+		list( $post_type, $post_status ) = $wpdb->get_row( $posts_prepared, ARRAY_N );
 
 		//checking - if translation and not saved before
 		if ( isset( $_GET[ 'trid' ] ) && !empty( $_GET[ 'trid' ] ) && $post_status == 'auto-draft' ) {
@@ -1011,18 +1067,22 @@ class WPML_Media
 			}
 
 			//get source id
-			$src_id = $wpdb->get_var( "SELECT element_id FROM {$wpdb->prefix}icl_translations WHERE trid={$_GET['trid']} AND language_code='{$src_lang}'" );
+			$src_id_prepared =  $wpdb->prepare("SELECT element_id FROM {$wpdb->prefix}icl_translations WHERE trid=%d AND language_code=%s", array($_GET['trid'], $src_lang));
+			$src_id = $wpdb->get_var( $src_id_prepared );
 
 			//delete exist auto-draft post media
-			$results     = $wpdb->get_results( "SELECT p.id FROM {$wpdb->posts} AS p LEFT JOIN {$wpdb->posts} AS p1 ON p.post_parent = p1.id WHERE p1.post_status = 'auto-draft'", ARRAY_A );
+			$results_prepared = $wpdb->prepare("SELECT p.id FROM {$wpdb->posts} AS p LEFT JOIN {$wpdb->posts} AS p1 ON p.post_parent = p1.id WHERE p1.post_status = %s", array('auto-draft'));
+			$results     = $wpdb->get_results( $results_prepared, ARRAY_A );
 			$attachments = array();
 			if ( !empty( $results ) ) {
 				foreach ( $results as $result ) {
 					$attachments[ ] = $result[ "id" ];
 				}
 				if ( !empty( $attachments ) ) {
-					$wpdb->query( "DELETE FROM {$wpdb->posts} WHERE id IN (" . join( ',', $attachments ) . ")" );
-					$wpdb->query( "DELETE FROM {$wpdb->postmeta} WHERE post_id IN (" . join( ',', $attachments ) . ")" );
+					$delete_prepared = $wpdb->prepare("DELETE FROM {$wpdb->posts} WHERE id IN (" . join( ',', $attachments ) . ")", array());
+					$wpdb->query( $delete_prepared );
+					$delete_prepared = $wpdb->prepare("DELETE FROM {$wpdb->postmeta} WHERE post_id IN (" . join( ',', $attachments ) . ")", array());
+					$wpdb->query( $delete_prepared );
 				}
 			}
 
@@ -1066,7 +1126,8 @@ class WPML_Media
 			$icl_trid = $_POST[ 'icl_trid' ];
 		} else {
 			// get trid from database.
-			$icl_trid = $wpdb->get_var( "SELECT trid FROM {$wpdb->prefix}icl_translations WHERE element_id={$pidd} AND element_type = 'post_$post_type'" );
+			$icl_trid_prepared = $wpdb->prepare("SELECT trid FROM {$wpdb->prefix}icl_translations WHERE element_id=%d AND element_type = %s", array($pidd, 'post_' . $post_type));
+			$icl_trid = $wpdb->get_var( $icl_trid_prepared );
 		}
 
 		if ( $icl_trid ) {
@@ -1084,12 +1145,17 @@ class WPML_Media
 		}
 	}
 
+//	function sync_attachments_metadata($post_id) {
+//		$data =
+//	}
+
 	function make_duplicate( $master_post_id, $target_lang, $post_array, $target_post_id )
 	{
 		global $wpdb, $sitepress;
 
 		//Get Master Post attachments
-		$master_post_attachment_ids = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE post_parent = $master_post_id AND post_type = 'attachment'" );
+		$master_post_attachment_ids_prepared = $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_parent = %d AND post_type = %s", array($master_post_id, 'attachment'));
+		$master_post_attachment_ids = $wpdb->get_col( $master_post_attachment_ids_prepared );
 
 		if ( $master_post_attachment_ids ) {
 			foreach ( $master_post_attachment_ids as $master_post_attachment_id ) {
@@ -1108,14 +1174,14 @@ class WPML_Media
 				}
 
 				if ( !$translated_attachment_id ) {
-					$translated_attachment_id = $this->create_duplicate_attachment( $master_post_attachment_id, wp_get_post_parent_id( $master_post_id ), $target_lang );
+					$translated_attachment_id = self::create_duplicate_attachment( $master_post_attachment_id, wp_get_post_parent_id( $master_post_id ), $target_lang );
 				}
 
 				if ( $translated_attachment_id ) {
 					//Set the parent post, if not already set
 					$translated_attachment = get_post( $translated_attachment_id );
 					if ( !$translated_attachment->post_parent ) {
-						$prepared_query = $wpdb->prepare( "UPDATE {$wpdb->posts} SET post_parent=%d WHERE ID=%d", $target_post_id, $translated_attachment_id );
+						$prepared_query = $wpdb->prepare( "UPDATE {$wpdb->posts} SET post_parent=%d WHERE ID=%d", array($target_post_id, $translated_attachment_id ));
 						$wpdb->query( $prepared_query );
 					}
 				}
@@ -1124,8 +1190,14 @@ class WPML_Media
 		}
 	}
 
-	//Synchronizing post metas with all translations
-
+	/**
+	 * Synchronizes _wpml_media_* meta fields with all translations
+	 *
+	 * @param int $meta_id
+	 * @param int $object_id
+	 * @param string $meta_key
+	 * @param string|mixed $meta_value
+	 */
 	function updated_postmeta( $meta_id, $object_id, $meta_key, $meta_value )
 	{
 		if ( in_array( $meta_key, array( '_wpml_media_duplicate', '_wpml_media_featured' ) ) ) {
@@ -1146,7 +1218,7 @@ class WPML_Media
 
 	function save_attachment_actions( $post_id )
 	{
-		if ( $this->is_uploading_plugin_or_theme() )
+		if ( $this->is_uploading_plugin_or_theme() && get_post_type($post_id) == 'attachment' )
 			return;
 
 		global $wpdb, $sitepress;
@@ -1158,8 +1230,8 @@ class WPML_Media
 		}
 		if ( empty( $media_language ) ) {
 			$parent_post = $wpdb->get_row( $wpdb->prepare(
-											   "SELECT p2.ID, p2.post_type FROM $wpdb->posts p1 JOIN $wpdb->posts p2 ON p1.post_parent =p2.ID WHERE p1.ID=%d"
-											   , $post_id ) );
+											   "SELECT p2.ID, p2.post_type FROM $wpdb->posts p1 JOIN $wpdb->posts p2 ON p1.post_parent = p2.ID WHERE p1.ID=%d"
+											   , array($post_id )) );
 
 			if ( $parent_post ) {
 				$media_language = $sitepress->get_language_for_element( $parent_post->ID, 'post_' . $parent_post->post_type );
@@ -1175,18 +1247,23 @@ class WPML_Media
 		}
 		if ( !empty( $media_language ) ) {
 			$sitepress->set_element_language_details( $post_id, 'post_attachment', $trid, $media_language );
+
+			$this->save_translated_attachments( $post_id );
+			$this->update_attachment_metadata( $post_id );
 		}
 	}
 
 	function save_translated_attachments( $post_id )
 	{
-		if ( $this->is_uploading_plugin_or_theme() )
+		if ( $this->is_uploading_plugin_or_theme() && get_post_type($post_id) == 'attachment' )
 			return;
 
 		global $sitepress;
 
 		$language_details = $sitepress->get_element_language_details( $post_id, 'post_attachment' );
-		$this->translate_attachments( $post_id, $language_details->language_code );
+		if ( isset( $language_details ) ) {
+			$this->translate_attachments( $post_id, $language_details->language_code );
+		}
 	}
 
 	function language_options()
@@ -1214,7 +1291,8 @@ class WPML_Media
 					// double check that it's not the original
 					// This is because the source_language_code field in icl_translations is not always set to null.
 
-					$source_language_code = $wpdb->get_var( "SELECT source_language_code FROM {$wpdb->prefix}icl_translations WHERE translation_id = $trans_data->translation_id" );
+					$source_language_code_prepared = $wpdb->prepare("SELECT source_language_code FROM {$wpdb->prefix}icl_translations WHERE translation_id = %d", array($trans_data->translation_id));
+					$source_language_code = $wpdb->get_var( $source_language_code_prepared );
 					$translation          = !( $source_language_code == "" || $source_language_code == null );
 					if ( $translation && isset( $icl_meta_box_globals[ 'translations' ][ $source_language_code ] ) ) {
 						$source_id     = $icl_meta_box_globals[ 'translations' ][ $source_language_code ]->element_id;
@@ -1330,10 +1408,12 @@ class WPML_Media
 		// get the attachment languages.
 		//if query-attachments need display all attachments
 		if ( ( isset( $_POST[ 'action' ] ) && $_POST[ 'action' ] == 'query-attachments' ) ) {
-			$results = $wpdb->get_results( "SELECT ID, post_parent FROM {$wpdb->posts} WHERE post_type='attachment'" );
+			$results_prepared = $wpdb->prepare("SELECT ID, post_parent FROM {$wpdb->posts} WHERE post_type=%s", array('attachment'));
+			$results = $wpdb->get_results( $results_prepared );
 		} else {
 			//don't display attachments auto-draft posts
-			$results = $wpdb->get_results( "SELECT p.ID, p.post_parent FROM {$wpdb->posts} AS p LEFT JOIN {$wpdb->posts} AS p1 ON p.post_parent = p1.id WHERE p1.post_status <> 'auto-draft' AND p.post_type='attachment'" );
+			$results_prepared = $wpdb->prepare("SELECT p.ID, p.post_parent FROM {$wpdb->posts} AS p LEFT JOIN {$wpdb->posts} AS p1 ON p.post_parent = p1.id WHERE p1.post_status <> %s AND p.post_type=%s", array('auto-draft', 'attachment'));
+			$results = $wpdb->get_results( $results_prepared );
 		}
 		$this->parents    = array();
 		$this->unattached = array();
@@ -1345,21 +1425,23 @@ class WPML_Media
 		}
 		if ( ( isset( $_POST[ 'action' ] ) && $_POST[ 'action' ] == 'query-attachments' ) ) {
 			//don't display attachments auto-draft posts
-			$results = $wpdb->get_results( "
+			$results_prepared = $wpdb->prepare("
 											SELECT p.id, t.language_code
 											FROM {$wpdb->posts} AS p
 												LEFT JOIN {$wpdb->posts} AS p1 ON p.post_parent = p1.id
 												INNER JOIN {$wpdb->prefix}icl_translations AS t ON p.id = t.element_id
-											WHERE p1.post_status <> 'auto-draft'
-												AND t.element_type='post_attachment'
-										" );
+											WHERE p1.post_status <> %s
+												AND t.element_type=%s
+										", array('auto-draft', 'post_attachment'));
+			$results = $wpdb->get_results( $results_prepared );
 		} else {
-			$results = $wpdb->get_results( "
+			$results_prepared     = $wpdb->prepare("
 											SELECT p.id, t.language_code
 											FROM {$wpdb->posts} AS p
 												INNER JOIN {$wpdb->prefix}icl_translations AS t ON p.id = t.element_id
-											WHERE t.element_type='post_attachment'
-										" );
+											WHERE t.element_type=%s
+										", array('post_attachment'));
+			$results = $wpdb->get_results( $results_prepared );
 		}
 
 
@@ -1376,11 +1458,12 @@ class WPML_Media
 		}
 		// get language of their parents
 		if ( !empty( $missing_languages ) ) {
-			$results = $wpdb->get_results( "
+			$results_prepared = $wpdb->prepare("
                 SELECT p.ID, t.language_code
                 FROM {$wpdb->posts} p JOIN {$wpdb->prefix}icl_translations t ON p.ID = t.element_id AND t.element_type = CONCAT('post_', p.post_type)
                 WHERE p.ID IN(" . join( ',', $missing_languages ) . ")
-            " );
+            ", array());
+			$results = $wpdb->get_results( $results_prepared );
 			foreach ( $results as $row ) {
 				$parent_languages[ $row->ID ] = $row->language_code;
 			}
@@ -1405,6 +1488,11 @@ class WPML_Media
 		return $url;
 	}
 
+	function wp_get_attachment_url($url, $post_id) {
+		global $sitepress;
+		return $sitepress->convert_url($url);
+	}
+
 	function icl_ls_languages( $w_active_languages )
 	{
 		static $doing_it = false;
@@ -1425,13 +1513,16 @@ class WPML_Media
 
 			global $wpdb;
 
-			$thumbnail = $wpdb->get_var( "SELECT meta_value FROM {$wpdb->postmeta} WHERE post_id = {$object_id} AND meta_key = '{$meta_key}'" );
+			$thumbnail_prepared = $wpdb->prepare( "SELECT meta_value FROM {$wpdb->postmeta} WHERE post_id = %d AND meta_key = %s", array($object_id, $meta_key));
+			$thumbnail = $wpdb->get_var( $thumbnail_prepared );
 
 			if ( $thumbnail == null ) {
 				// see if it's available in the original language.
 
-				$post_type = $wpdb->get_var( "SELECT post_type FROM {$wpdb->posts} WHERE ID = $object_id" );
-				$trid      = $wpdb->get_row( "SELECT trid, source_language_code FROM {$wpdb->prefix}icl_translations WHERE element_id={$object_id} AND element_type = 'post_$post_type'" );
+				$post_type_prepared = $wpdb->prepare( "SELECT post_type FROM {$wpdb->posts} WHERE ID = %d", array($object_id));
+				$post_type = $wpdb->get_var( $post_type_prepared );
+				$trid_prepared = $wpdb->prepare( "SELECT trid, source_language_code FROM {$wpdb->prefix}icl_translations WHERE element_id=%d AND element_type = %s", array($object_id, 'post_'.$post_type));
+				$trid      = $wpdb->get_row( $trid_prepared );
 				if ( $trid ) {
 
 					global $sitepress;
@@ -1440,7 +1531,8 @@ class WPML_Media
 					if ( isset( $translations[ $trid->source_language_code ] ) ) {
 						$translation = $translations[ $trid->source_language_code ];
 						// see if the original has a thumbnail.
-						$thumbnail = $wpdb->get_var( "SELECT meta_value FROM {$wpdb->postmeta} WHERE post_id = {$translation->element_id} AND meta_key = '{$meta_key}'" );
+						$thumbnail_prepared = $wpdb->prepare( "SELECT meta_value FROM {$wpdb->postmeta} WHERE post_id = %d AND meta_key = %s", array($translation->element_id, $meta_key));
+						$thumbnail = $wpdb->get_var( $thumbnail_prepared );
 						if ( $thumbnail ) {
 							$value = $thumbnail;
 						}
@@ -1457,11 +1549,14 @@ class WPML_Media
 
 	function menu()
 	{
+		global $sitepress;
+		if(!isset($sitepress) || (method_exists($sitepress,'get_setting') && !$sitepress->get_setting( 'setup_complete' ))) return;
+
 		$top_page = apply_filters( 'icl_menu_main_page', basename( ICL_PLUGIN_PATH ) . '/menu/languages.php' );
 
 		add_submenu_page( $top_page,
 						  __( 'Media translation', 'wpml-media' ),
-						  __( 'Media translation', 'wpml-media' ), 'manage_options',
+						  __( 'Media translation', 'wpml-media' ), 'wpml_manage_media_translation',
 						  'wpml-media', array( $this, 'menu_content' ) );
 	}
 
@@ -1522,7 +1617,6 @@ class WPML_Media
 	}
 
 	//check if the image is not duplicated to another post before deleting it physically
-
 	function views_upload( $views )
 	{
 		global $sitepress, $wpdb, $pagenow;
@@ -1645,7 +1739,8 @@ class WPML_Media
 			$file_name = preg_replace( '/^(.+)\-\d+x\d+(\.\w+)$/', '$1$2', $file );
 			$file_name = preg_replace( '/^[\s\S]+(\/.+)$/', '$1', $file_name );
 			//check file name in DB
-			$attachment = $wpdb->get_row( "SELECT pm.meta_id, pm.post_id FROM {$wpdb->postmeta} AS pm WHERE pm.meta_value LIKE '%" . $file_name . "'" );
+			$attachment_prepared = $wpdb->prepare( "SELECT pm.meta_id, pm.post_id FROM {$wpdb->postmeta} AS pm WHERE pm.meta_value LIKE %s", array('%'. $file_name));
+			$attachment = $wpdb->get_row( $attachment_prepared );
 			//if exist return NULL(do not delete physically)
 			if ( !empty( $attachment ) ) {
 				$file = null;
@@ -1655,11 +1750,23 @@ class WPML_Media
 		return $file;
 	}
 
+	/**
+	 * @deprecated Use Core methods (and filters)
+	 * @since      3.1
+	 *
+	 * @param $join  string
+	 * @param $query WP_query
+	 *
+	 * @return string
+	 */
 	function posts_join_filter( $join, $query )
 	{
 		global $wpdb, $wp_taxonomies, $sitepress, $sitepress_settings;
 
-		if(isset($query->queried_object) && $query->queried_object->ID == $sitepress_settings['urls']['root_page'] ) return $join;
+		$queried_object_id = $query->get_queried_object_id();
+		if ( ( $queried_object_id ) && $queried_object_id == $sitepress_settings[ 'urls' ][ 'root_page' ] ) {
+			return $join;
+		}
 
 		// determine post type
 		$db = debug_backtrace();
@@ -1730,11 +1837,22 @@ class WPML_Media
 		return $join;
 	}
 
+	/**
+	 * @deprecated Use Core methods (and filters)
+	 *
+	 * @param $where string
+	 * @param $query WP_Query
+	 *
+	 * @return string
+	 */
 	function posts_where_filter( $where, $query )
 	{
 		global $wp_taxonomies, $sitepress, $sitepress_settings;
 
-		if(isset($query->queried_object) && $query->queried_object->ID == $sitepress_settings['urls']['root_page'] ) return $where;
+		$queried_object_id = $query->get_queried_object_id();
+		if ( ( $queried_object_id ) && $queried_object_id == $sitepress_settings[ 'urls' ][ 'root_page' ] ) {
+			return $where;
+		}
 
 		// determine post type
 		$db = debug_backtrace();
