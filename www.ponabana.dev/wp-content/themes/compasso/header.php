@@ -43,6 +43,7 @@
 			<div class="six columns">
 				<div id="logo">
                 <?php if(ICL_LANGUAGE_CODE=='fr'): ?>
+                <a href="<?php echo esc_url(home_url('/')); ?>">
 <img src="/gfx/logo_y60.png">
 <?php elseif(ICL_LANGUAGE_CODE=='en'): ?>
 <img src="/gfx/logo_y60eng.png">
