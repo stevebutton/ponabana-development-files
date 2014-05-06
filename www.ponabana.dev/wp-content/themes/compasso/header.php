@@ -66,8 +66,14 @@
 			<div class="ten columns">
 				<?php if (g7_option('banner') && g7_option('banner_image')) : ?>
 				<div id="top-banner">
-					<a href="<?php echo g7_option('banner_link'); ?>">
-						<img src="<?php echo g7_option('banner_image'); ?>" alt="banner">
+                <?php if(ICL_LANGUAGE_CODE=='fr'): ?>
+<img src="/gfx/banner_right.png">
+<?php elseif(ICL_LANGUAGE_CODE=='en'): ?>
+<img src="/gfx/banner_righteng.png">
+<?php endif;?>
+
+					<?php /*?><a href="<?php echo g7_option('banner_link'); ?>">
+						<img src="<?php echo g7_option('banner_image'); ?>" alt="banner"><?php */?>
 					</a>
 				</div>
 				<?php endif; ?>
