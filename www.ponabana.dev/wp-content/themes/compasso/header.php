@@ -46,6 +46,7 @@
                 <a href="<?php echo esc_url(home_url('/')); ?>">
 <img src="/gfx/logo_y60.png">
 <?php elseif(ICL_LANGUAGE_CODE=='en'): ?>
+ <a href="<?php echo esc_url(home_url('/')); ?>">
 <img src="/gfx/logo_y60eng.png">
 <?php endif;?>
 					<?php /*?><?php if (g7_option('logo') == '1') : ?>
