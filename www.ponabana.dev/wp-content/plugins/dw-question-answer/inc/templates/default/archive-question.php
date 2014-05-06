@@ -11,7 +11,15 @@ get_header('dwqa'); ?>
 
 <div id="archive-question" class="dw-question">
 	<div class="dwqa-list-question">
-    <p>test text input here</p>
+    <p>Posez-nous vos Questions !
+Vous avez une question concernant la situation des enfants en RDCongo ou le travail de l'UNICEF?
+N'hésitez pas, un specialiste de l'UNICEF répondra aux questions sélectionnées dans les plus brefs délais!
+Note: Nous vous invitons à vérifier que votre question n'a pas déjà été posée.
+---------------------------------
+Ask us! 
+Is there something you want to know about the situation of children in the DRC or the work of UNICEF? 
+Feel free to ask, one of our specialists will give you an answer as soon as possible!
+Note: Please check first if your question has already been asked.</p>
 		<?php dwqa_load_template('search', 'question'); ?>
 		<div class="filter-bar">
 			<?php wp_nonce_field( '_dwqa_filter_nonce', '_filter_wpnonce', false ); ?>
