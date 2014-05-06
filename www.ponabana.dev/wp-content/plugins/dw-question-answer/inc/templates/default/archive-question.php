@@ -11,6 +11,7 @@ get_header('dwqa'); ?>
 
 <div id="archive-question" class="dw-question">
 	<div class="dwqa-list-question">
+    <p>test text input here</p>
 		<?php dwqa_load_template('search', 'question'); ?>
 		<div class="filter-bar">
 			<?php wp_nonce_field( '_dwqa_filter_nonce', '_filter_wpnonce', false ); ?>
