@@ -42,7 +42,12 @@
 		<div class="container">
 			<div class="six columns">
 				<div id="logo">
-					<?php if (g7_option('logo') == '1') : ?>
+                <?php if(ICL_LANGUAGE_CODE=='fr'): ?>
+<img src="/gfx/logo_y60.png">
+<?php elseif(ICL_LANGUAGE_CODE=='en'): ?>
+<img src="/gfx/logo_y60eng.png">
+<?php endif;?>
+					<?php /*?><?php if (g7_option('logo') == '1') : ?>
 						<a href="<?php echo esc_url(home_url('/')); ?>">
 							<img src="<?php echo g7_option('logo_image'); ?>" alt="<?php bloginfo('name'); ?>">
 						</a>
@@ -53,7 +58,7 @@
 							</a>
 						</h1>
 						<h2 id="site-description"><?php bloginfo('description'); ?></h2>
-					<?php endif; ?>
+					<?php endif; ?><?php */?>
 				</div>
 			</div>
 			<div class="ten columns">
