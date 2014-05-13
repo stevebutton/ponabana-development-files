@@ -1,0 +1,292 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Untitled Document</title>
+</head>
+
+<body>
+[one_half]
+<img class="alignnone size-full wp-image-6639" alt="ponaban-mailchimp-frenchsmall" src="/wp-content/uploads/2014/05/ponaban-mailchimp-frenchsmall.jpg" width="405" height="203" />
+
+<h3>Inscrivez-vous à la Newsletter Po Na Bana!</h3>
+<p>Text explaining why you should subscribe and that the newsletter is available in French or English.</p>
+
+<!-- Begin MailChimp Signup Form -->
+
+	<link href="//cdn-images.mailchimp.com/embedcode/classic-081711.css" rel="stylesheet" type="text/css" />
+
+<style type="text/css"><!--
+#mc_embed_signup{background:#fff; clear:left; font:14px Helvetica,Arial,sans-serif; }
+/* Add your own MailChimp form style overrides in your site stylesheet or in this style block.
+We recommend moving this block and the preceding CSS link to the HEAD of your HTML file. */
+--></style>
+<div id="mc_embed_signup"><form class="validate" id="mc-embedded-subscribe-form" action="http://ponabana.us3.list-manage.com/subscribe/post?u=01c4de436c0af872d6d1f8c2b&amp;id=afd7b712ab" method="post" name="mc-embedded-subscribe-form" novalidate="" target="_blank">
+<h2>Inscrivez-vous</h2>
+<div class="indicates-required"><span class="asterisk">*</span> champ requis</div>
+<div class="mc-field-group"><label for="mce-EMAIL">Adresse Email <span class="asterisk">*</span>
+</label>
+<input class="required email" id="mce-EMAIL" type="email" name="EMAIL" value="" /></div>
+<div class="mc-field-group"><label for="mce-FNAME">Prenom </label>
+<input id="mce-FNAME" type="text" name="FNAME" value="" /></div>
+<div class="mc-field-group"><label for="mce-LNAME">Nom </label>
+<input id="mce-LNAME" type="text" name="LNAME" value="" /></div>
+<div class="clear" id="mce-responses"></div>
+<!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
+<div style="position: absolute; left: -5000px;"><input tabindex="-1" type="text" name="b_01c4de436c0af872d6d1f8c2b_afd7b712ab" value="" /></div>
+<div class="this"><input class="button" id="mc-embedded-subscribe" type="submit" name="subscribe" value="Inscrivez-vous" /></div>
+</form></div>
+<script type="text/javascript">// <![CDATA[
+var fnames = new Array();var ftypes = new Array();fnames[0]='EMAIL';ftypes[0]='email';fnames[1]='FNAME';ftypes[1]='text';fnames[2]='LNAME';ftypes[2]='text';
+try {
+    var jqueryLoaded=jQuery;
+    jqueryLoaded=true;
+} catch(err) {
+    var jqueryLoaded=false;
+}
+var head= document.getElementsByTagName('head')[0];
+if (!jqueryLoaded) {
+    var script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = '//ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js';
+    head.appendChild(script);
+    if (script.readyState &#038;& script.onload!==null){
+        script.onreadystatechange= function () {
+              if (this.readyState == 'complete') mce_preload_check();
+        }    
+    }
+}
+
+var err_style = '';
+try{
+    err_style = mc_custom_error_style;
+} catch(e){
+    err_style = '#mc_embed_signup input.mce_inline_error{border-color:#6B0505;} #mc_embed_signup div.mce_inline_error{margin: 0 0 1em 0; padding: 5px 10px; background-color:#6B0505; font-weight: bold; z-index: 1; color:#fff;}';
+}
+var head= document.getElementsByTagName('head')[0];
+var style= document.createElement('style');
+style.type= 'text/css';
+if (style.styleSheet) {
+  style.styleSheet.cssText = err_style;
+} else {
+  style.appendChild(document.createTextNode(err_style));
+}
+head.appendChild(style);
+setTimeout('mce_preload_check();', 250);
+
+var mce_preload_checks = 0;
+function mce_preload_check(){
+    if (mce_preload_checks>40) return;
+    mce_preload_checks++;
+    try {
+        var jqueryLoaded=jQuery;
+    } catch(err) {
+        setTimeout('mce_preload_check();', 250);
+        return;
+    }
+    var script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = 'http://downloads.mailchimp.com/js/jquery.form-n-validate.js';
+    head.appendChild(script);
+    try {
+        var validatorLoaded=jQuery("#fake-form").validate({});
+    } catch(err) {
+        setTimeout('mce_preload_check();', 250);
+        return;
+    }
+    mce_init_form();
+}
+function mce_init_form(){
+    jQuery(document).ready( function($) {
+      var options = { errorClass: 'mce_inline_error', errorElement: 'div', onkeyup: function(){}, onfocusout:function(){}, onblur:function(){}  };
+      var mce_validator = $("#mc-embedded-subscribe-form").validate(options);
+      $("#mc-embedded-subscribe-form").unbind('submit');//remove the validator so we can get into beforeSubmit on the ajaxform, which then calls the validator
+      options = { url: 'http://ponabana.us3.list-manage2.com/subscribe/post-json?u=01c4de436c0af872d6d1f8c2b&#038;id=afd7b712ab&#038;c=?', type: 'GET', dataType: 'json', contentType: "application/json; charset=utf-8",
+                    beforeSubmit: function(){
+                        $('#mce_tmp_error_msg').remove();
+                        $('.datefield','#mc_embed_signup').each(
+                            function(){
+                                var txt = 'filled';
+                                var fields = new Array();
+                                var i = 0;
+                                $(':text', this).each(
+                                    function(){
+                                        fields[i] = this;
+                                        i++;
+                                    });
+                                $(':hidden', this).each(
+                                    function(){
+                                        var bday = false;
+                                        if (fields.length == 2){
+                                            bday = true;
+                                            fields[2] = {'value':1970};//trick birthdays into having years
+                                        }
+                                    	if ( fields[0].value=='MM' &#038;& fields[1].value=='DD' &#038;& (fields[2].value=='YYYY' || (bday &#038;& fields[2].value==1970) ) ){
+                                    		this.value = '';
+									    } else if ( fields[0].value=='' &#038;& fields[1].value=='' &#038;& (fields[2].value=='' || (bday &#038;& fields[2].value==1970) ) ){
+                                    		this.value = '';
+									    } else {
+									        if (/\[day\]/.test(fields[0].name)){
+    	                                        this.value = fields[1].value+'/'+fields[0].value+'/'+fields[2].value;									        
+									        } else {
+    	                                        this.value = fields[0].value+'/'+fields[1].value+'/'+fields[2].value;
+	                                        }
+	                                    }
+                                    });
+                            });
+                        $('.phonefield-us','#mc_embed_signup').each(
+                            function(){
+                                var fields = new Array();
+                                var i = 0;
+                                $(':text', this).each(
+                                    function(){
+                                        fields[i] = this;
+                                        i++;
+                                    });
+                                $(':hidden', this).each(
+                                    function(){
+                                        if ( fields[0].value.length != 3 || fields[1].value.length!=3 || fields[2].value.length!=4 ){
+                                    		this.value = '';
+									    } else {
+									        this.value = 'filled';
+	                                    }
+                                    });
+                            });
+                        return mce_validator.form();
+                    }, 
+                    success: mce_success_cb
+                };
+      $('#mc-embedded-subscribe-form').ajaxForm(options);
+      /*
+ * Translated default messages for the jQuery validation plugin.
+ * Locale: FR
+ */
+jQuery.extend(jQuery.validator.messages, {
+        required: "Ce champ est requis.",
+        remote: "Veuillez remplir ce champ pour continuer.",
+        email: "Veuillez entrer une adresse email valide.",
+        url: "Veuillez entrer une URL valide.",
+        date: "Veuillez entrer une date valide.",
+        dateISO: "Veuillez entrer une date valide (ISO).",
+        number: "Veuillez entrer un nombre valide.",
+        digits: "Veuillez entrer (seulement) une valeur numérique.",
+        creditcard: "Veuillez entrer un numéro de carte de crédit valide.",
+        equalTo: "Veuillez entrer une nouvelle fois la même valeur.",
+        accept: "Veuillez entrer une valeur avec une extension valide.",
+        maxlength: jQuery.validator.format("Veuillez ne pas entrer plus de {0} caractères."),
+        minlength: jQuery.validator.format("Veuillez entrer au moins {0} caractères."),
+        rangelength: jQuery.validator.format("Veuillez entrer entre {0} et {1} caractères."),
+        range: jQuery.validator.format("Veuillez entrer une valeur entre {0} et {1}."),
+        max: jQuery.validator.format("Veuillez entrer une valeur inférieure ou égale à {0}."),
+        min: jQuery.validator.format("Veuillez entrer une valeur supérieure ou égale à {0}.")
+});
+
+    });
+}
+function mce_success_cb(resp){
+    $('#mce-success-response').hide();
+    $('#mce-error-response').hide();
+    if (resp.result=="success"){
+        $('#mce-'+resp.result+'-response').show();
+        $('#mce-'+resp.result+'-response').html(resp.msg);
+        $('#mc-embedded-subscribe-form').each(function(){
+            this.reset();
+    	});
+    } else {
+        var index = -1;
+        var msg;
+        try {
+            var parts = resp.msg.split(' - ',2);
+            if (parts[1]==undefined){
+                msg = resp.msg;
+            } else {
+                i = parseInt(parts[0]);
+                if (i.toString() == parts[0]){
+                    index = parts[0];
+                    msg = parts[1];
+                } else {
+                    index = -1;
+                    msg = resp.msg;
+                }
+            }
+        } catch(e){
+            index = -1;
+            msg = resp.msg;
+        }
+        try{
+            if (index== -1){
+                $('#mce-'+resp.result+'-response').show();
+                $('#mce-'+resp.result+'-response').html(msg);            
+            } else {
+                err_id = 'mce_tmp_error_msg';
+                html = '
+
+<div id="'+err_id+'" style="'+err_style+'"> '+msg+'</div>
+
+';
+
+                var input_id = '#mc_embed_signup';
+                var f = $(input_id);
+                if (ftypes[index]=='address'){
+                    input_id = '#mce-'+fnames[index]+'-addr1';
+                    f = $(input_id).parent().parent().get(0);
+                } else if (ftypes[index]=='date'){
+                    input_id = '#mce-'+fnames[index]+'-month';
+                    f = $(input_id).parent().parent().get(0);
+                } else {
+                    input_id = '#mce-'+fnames[index];
+                    f = $().parent(input_id).get(0);
+                }
+                if (f){
+                    $(f).append(html);
+                    $(input_id).focus();
+                } else {
+                    $('#mce-'+resp.result+'-response').show();
+                    $('#mce-'+resp.result+'-response').html(msg);
+                }
+            }
+        } catch(e){
+            $('#mce-'+resp.result+'-response').show();
+            $('#mce-'+resp.result+'-response').html(msg);
+        }
+    }
+}
+// ]]></script>
+<!--End mc_embed_signup-->
+[/one_half]
+
+[one_half_last]
+<img class="alignnone size-full wp-image-6641" alt="ponaban-mailchimp-englishsmall" src="/wp-content/uploads/2014/05/ponaban-mailchimp-englishsmall.jpg" width="405" height="203" />
+
+<h3>Subscribe to the Po Na Bana Newsletter!</h3>
+<p>Text explaining why you should subscribe and that the newsletter is available in French or English.</p>
+
+<code><!-- Begin MailChimp Signup Form --></code>
+
+	<link href="//cdn-images.mailchimp.com/embedcode/classic-081711.css" rel="stylesheet" type="text/css" />
+
+<style type="text/css"><!--
+#mc_embed_signup{background:#fff; clear:left; font:14px Helvetica,Arial,sans-serif; }
+/* Add your own MailChimp form style overrides in your site stylesheet or in this style block.
+We recommend moving this block and the preceding CSS link to the HEAD of your HTML file. */
+--></style>
+<div id="mc_embed_signup"><form class="validate" id="mc-embedded-subscribe-form" action="http://ponabana.us3.list-manage2.com/subscribe/post?u=01c4de436c0af872d6d1f8c2b&amp;id=3dfc83950c" method="post" name="mc-embedded-subscribe-form" novalidate="" target="_blank">
+<h2>Subscribe to our mailing list</h2>
+<div class="indicates-required"><span class="asterisk">*</span> indicates required</div>
+<div class="mc-field-group"><label for="mce-EMAIL">Email Address <span class="asterisk">*</span>
+</label>
+<input class="required email" id="mce-EMAIL" type="email" name="EMAIL" value="" /></div>
+<div class="mc-field-group"><label for="mce-FNAME">First Name </label>
+<input id="mce-FNAME" type="text" name="FNAME" value="" /></div>
+<div class="mc-field-group"><label for="mce-LNAME">Last Name </label>
+<input id="mce-LNAME" type="text" name="LNAME" value="" /></div>
+<div class="clear" id="mce-responses"></div>
+<!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
+<div style="position: absolute; left: -5000px;"><input tabindex="-1" type="text" name="b_01c4de436c0af872d6d1f8c2b_3dfc83950c" value="" /></div>
+<div class="this"><input class="button" id="mc-embedded-subscribe" type="submit" name="subscribe" value="Subscribe" /></div>
+</form></div>
+<!--End mc_embed_signup-->
+[/one_half_last]
+
+</body>
+</html>
