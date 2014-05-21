@@ -89,7 +89,9 @@ if (!function_exists('g7_option')) {
 	}
 }
 
-
+//allow html in author bio
+remove_filter('pre_user_description', 'wp_filter_kses');  
+add_filter( 'pre_user_description', 'wp_filter_post_kses' );
 require_once(PARENT_DIR . '/includes/ajax_action.php');
 require_once(PARENT_DIR . '/includes/aq_resizer.php');
 require_once(PARENT_DIR . '/includes/shortcodes/shortcodes.php');

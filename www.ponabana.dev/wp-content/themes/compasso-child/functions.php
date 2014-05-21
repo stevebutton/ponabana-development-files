@@ -10,6 +10,9 @@ function g7_rating($rating, $size = '') {
 		$rating
 	);
 }
+//allow html in author bio
+remove_filter('pre_user_description', 'wp_filter_kses');  
+add_filter( 'pre_user_description', 'wp_filter_post_kses' );
 
 remove_filter('get_the_excerpt', 'wp_trim_excerpt');
 add_filter('get_the_excerpt', 'custom_trim_excerpt');
