@@ -17,6 +17,8 @@ add_filter( 'pre_user_description', 'wp_filter_post_kses' );
 remove_filter('get_the_excerpt', 'wp_trim_excerpt');
 add_filter('get_the_excerpt', 'custom_trim_excerpt');
 
+remove_filter('template_redirect', 'redirect_canonical');
+
 function custom_trim_excerpt($text) { // Fakes an excerpt if needed
 global $post;
 if ( '' == $text ) {
