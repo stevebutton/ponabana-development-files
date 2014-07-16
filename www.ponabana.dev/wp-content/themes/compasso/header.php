@@ -17,8 +17,7 @@
 </head>
 
 <body <?php body_class(); ?>>
-Warning: main(root/settings.php): failed to open stream: no such file or directory
-Fatal Error: main() Failed opening required 'root/settings.php'
+
 	<?php if (g7_option('top_bar')) : ?>
 	<nav id="top">
 		<div class="container clearfix">
