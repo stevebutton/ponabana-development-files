@@ -4,7 +4,7 @@
 		//Which theme are we hooking?
 		if(isset($_GET["template"]) && $_GET["template"]) :
 			$template = $_GET["template"];
-		elseif(get_option("apollo_theme")) :		
+		elseif(get_option("apollo_theme")) :
 			$template = get_option("apollo_theme");
 		else :
 			$template = "default";
@@ -12,15 +12,15 @@
 		//If theme is invalid, change to default
 		if(!file_exists($this->template_dir()."/".$template)) :
 			$template = "apollo";
-		endif; 
-		
+		endif;
+
 		return $template;
 	}
 	function stylesheet(){
 		//Which theme are we hooking?
 		if(isset($_GET["stylesheet"]) && $_GET["stylesheet"]) :
 			$template = $_GET["stylesheet"];
-		elseif(get_option("apollo_stylesheet")) :	
+		elseif(get_option("apollo_stylesheet")) :
 			$template = get_option("apollo_stylesheet");
 		else :
 			$template = "apollo";
@@ -28,39 +28,39 @@
 		//If theme is invalid, change to default
 		if(!file_exists($this->template_dir()."/".$template)) :
 			$template = "default";
-		endif; 
+		endif;
 		return $template;
 	}
-	
+
 	function template_dir(){
 		$template_path = LAUNCHPADDIR."themes";
 		return $template_path;
 	}
-	
+
 	function template_uri(){
 		$template_path = plugins_url("launchpad-by-obox/")."themes";
 		return $template_path;
 	}
-	
+
 	// Which stylesheet are we using for the front page?
 	function color_style(){
 		$options = get_option('apollo_theme_options');
-		
+
 		if(isset($_GET["use_colour"]) && $_GET["use_colour"]) :
 			$theme = $_GET["use_colour"];
 		elseif(!$options["theme"]) :
 			$theme = "slick-gloss";
 		else :
 			$theme = $options["theme"];
-		endif;	
+		endif;
 		return $theme;
 	}
-	
+
 	function add_query_vars($query_vars) {
 	    $query_vars[] = 'style';
 	    return $query_vars;
 	}
-	
+
 	function custom_css() {
 	    $style = get_query_var('style');
 	    if($style == "custom") {
@@ -68,29 +68,31 @@
 	        exit;
 	    }
 	}
-	
+
 	// Script inclusion
 	function scripts(){
 		global $pagenow;
-		
+
 		// jQuery inclusion
 		wp_enqueue_script( "jquery");
-		
+
 		// Admin Scripts
 		if(is_admin()) :
 			if(isset($_REQUEST['page']) && $_REQUEST['page'] == "apollo_general_settings") :
 				// Scripts
+				wp_enqueue_script( 'jquery-ui-core' );
 				wp_enqueue_script( 'jquery-ui-draggable' );
 				wp_enqueue_script( 'jquery-ui-droppable' );
 				wp_enqueue_script( 'jquery-ui-sortable' );
-				wp_enqueue_script( 'jquery-ui-sortable' );
-				wp_enqueue_script( 'ui-jquery', plugins_url('launchpad-by-obox/js/jquery-ui.min.js'), array( 'jquery' ) );
+				wp_enqueue_script( 'jquery-ui-datepicker' );
+				wp_enqueue_script( 'jquery-ui-slider' );
+
 				wp_enqueue_script( 'ui-jquery-timepicker', plugins_url('launchpad-by-obox/js/jquery.timepicker.js'), array( 'jquery' ) );
-				wp_enqueue_script( 'jquery-checkboxes', plugins_url('launchpad-by-obox/js/jquery.checkboxes.js'), array( 'jquery' ) );				
+				wp_enqueue_script( 'jquery-checkboxes', plugins_url('launchpad-by-obox/js/jquery.checkboxes.js'), array( 'jquery' ) );
 				wp_enqueue_script( 'apollo-admin', plugins_url('launchpad-by-obox/js/admin.js'), array( 'jquery' ) );
 				wp_localize_script( 'apollo-admin', 'base', plugins_url('launchpad'));
 				wp_enqueue_script( 'theme-preview' );
-				add_thickbox(); 
+				add_thickbox();
 
 				// Styles
 				wp_enqueue_style( 'apollo-admin', plugins_url("launchpad-by-obox/css/admin.css"));
@@ -114,10 +116,10 @@
 	}
 	function admin_styles(){
 		global $pagenow;
-		
+
 		// jQuery inclusion
 		wp_enqueue_script( "jquery");
-		
+
 		// Admin Scripts
 		if(is_admin()) :
 			if(isset($_REQUEST['page']) && $_REQUEST['page'] == "apollo_general_settings") :
@@ -134,25 +136,25 @@
 			endif;
 		endif;
 	}
-	
+
 	function styles(){
 		$apollo_theme_options =  get_option("apollo_theme_options");
 		$apollo_css_options =  get_option("apollo_css_options");
-		
+
 		wp_register_style( 'apollo-color', $this->template_uri() . '/' . $this->template() . '/color-styles/' . $this->color_style() . '/style.css');
 		wp_enqueue_style( 'apollo-color' );
-		
+
 		if(isset($apollo_theme_options["font"]) && $apollo_theme_options["font"] != "") :
 			wp_register_style( 'apollo-fonts', plugins_url("launchpad-by-obox/").'css/fonts/' . $apollo_theme_options["font"] . '.css');
 			wp_enqueue_style( 'apollo-fonts' );
 		endif;
-		
-		if($apollo_css_options["css"] != "" || $apollo_theme_options["background"] != "") :		
+
+		if($apollo_css_options["css"] != "" || $apollo_theme_options["background"] != "") :
 			wp_register_style( 'apollo-custom', get_home_url() . '?style=custom');
-			wp_enqueue_style( 'apollo-custom' );	
+			wp_enqueue_style( 'apollo-custom' );
 		endif;
 	}
-	
+
 	// Script version removal, because we don't want ?ver=3.3.2 trailing every script inclusion
 	function remove_src_version ( $src ) {
 		global $wp_version;
@@ -163,18 +165,18 @@
 		else
 			return $src;
 	}
-	
+
 	//Let the admin know when the plugin is active, and that the public can't see the site.
 	function active_warning(){
 		global $wp_admin_bar;
 		$options = get_option('apollo_display_options');
-		
+
 		 /* Add the main siteadmin menu item */
 		 if(isset($options["active"]))
 			 $wp_admin_bar->add_menu( array( 'id' => 'apollo_general_settings', 'title' => 'Warning: Maintenance mode is active!', 'href' => admin_url('?page=apollo_general_settings')) );
 
 	}
-	
+
 	// Let's make sure we're not in the admin section and that we don't have the rights to access this site
 	function active(){
 		$options = get_option('apollo_display_options');
@@ -211,7 +213,7 @@
 			endif;
 		endif;
 	}
-	
+
 	// The Kick Off!
 	function initiate(){
 		if ($this->active() == true) :
@@ -222,12 +224,12 @@
 			add_filter( 'theme_root_uri', array( &$this, 'template_uri') );
 			add_filter( 'query_vars', array(&$this, 'add_query_vars'));
 			add_action( 'template_redirect', array(&$this, 'custom_css'));
-			
+
 			//Scripts
 			add_action( 'wp_print_scripts', array( &$this, 'scripts') );
 			add_action( 'wp_print_styles', array( &$this, 'styles') );
 		endif;
-		
+
 		//Scripts we can load without the plugin being active
 		add_filter( 'script_loader_src', array( &$this, 'remove_src_version') );
 		add_filter( 'style_loader_src', array( &$this, 'remove_src_version') );

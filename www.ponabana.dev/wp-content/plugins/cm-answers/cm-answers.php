@@ -5,7 +5,7 @@
   Plugin URI: http://answers.cminds.com/
   Description: Allow users to post questions and answers (Q&A) in a stackoverflow style forum which is easy to use and install. Easy social integration & Customization
   Author: CreativeMindsSolutions
-  Version: 2.0.8
+  Version: 2.4.3
  */
 
 /*
@@ -34,9 +34,13 @@ if (version_compare('5.3', phpversion(), '>')) {
 define('CMA_PREFIX', 'CMA_');
 define('CMA_PATH', WP_PLUGIN_DIR . '/' . basename(dirname(__FILE__)));
 define('CMA_URL', plugins_url('', __FILE__));
+define('CMA_PLUGIN_FILE', __FILE__);
 //Init the plugin
 require_once CMA_PATH . '/lib/CMA.php';
+require_once CMA_PATH . '/lib/models/Labels.php';
+require_once CMA_PATH . '/lib/models/Answer.php';
+require_once CMA_PATH . '/lib/models/Category.php';
+require_once CMA_PATH . '/lib/helpers/BuddyPress.php';
 register_activation_hook(__FILE__, array('CMA', 'install'));
 register_uninstall_hook(__FILE__, array('CMA', 'uninstall'));
 CMA::init();
-?>

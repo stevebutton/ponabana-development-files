@@ -64,7 +64,7 @@ class CMA_AnswerController extends CMA_BaseController
 
     public static function registerCustomOrder($query)
     {
-        if($query->query_vars['post_type'] == CMA_AnswerThread::POST_TYPE && $query->query_vars['widget'] !== true && !$query->is_single && !$query->is_404 && !$query->is_author && isset($_GET['sort']))
+        if(((isset($query->query_vars['post_type']) && $query->query_vars['post_type'] == CMA_AnswerThread::POST_TYPE) || ( isset($query->query_vars['widget']) && $query->query_vars['widget'] !== true )) && !$query->is_single && !$query->is_404 && !$query->is_author && isset($_GET['sort']))
         {
             $query         = CMA_AnswerThread::customOrder($query, $_GET['sort']);
             $query->is_top = true;
@@ -128,8 +128,8 @@ class CMA_AnswerController extends CMA_BaseController
         $post      = $wp_query->post;
         $thread    = CMA_AnswerThread::getInstance($post->ID);
         $content   = $_POST['content'];
-        $notify    = (bool) $_POST['thread_notify'];
-        $resolved  = (bool) $_POST['thread_resolved'];
+        $notify    = !empty($_POST['thread_notify']);
+        $resolved  = !empty($_POST['thread_resolved']);
         $author_id = get_current_user_id();
         $error     = false;
         $messages  = array();
@@ -160,6 +160,9 @@ class CMA_AnswerController extends CMA_BaseController
             }
             else
             {
+            	
+            	do_action('cma_answer_post_after', $thread, CMA_Answer::getById($comment_id));
+            	
                 $autoApprove = CMA_AnswerThread::isAnswerAutoApproved();
                 if($autoApprove)
                 {

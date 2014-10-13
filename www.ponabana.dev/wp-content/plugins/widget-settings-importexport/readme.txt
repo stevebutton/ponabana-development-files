@@ -2,8 +2,10 @@
 Contributors: kevinlangleyjr, smccafferty, markparolisi, voceplatforms
 Tags: widget, import, export
 Requires at least: 2.8
-Tested up to: 3.5.2
-Stable tag: 1.2
+Tested up to: 3.9.1
+Stable tag: 1.4.1
+License: GPLv2 or later
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 Allows you to export and import widgets settings.
 
@@ -13,12 +15,22 @@ Gives the user the ability to export the current widget settings and states as a
 
 ** Please note that the plugin currently does not import anything if that particular sidebar is unavailable during the import.
 
-*** This plugin requires at least PHP 5.3.0
+*** This plugin requires at least PHP 5.2.0
+
+Please refer to full documentation at https://github.com/voceconnect/widget-data/wiki.
 
 == Installation ==
 
-1. Upload entire widget-data directory to the `/wp-content/plugins/` directory
-2. Activate the plugin through the 'Plugins' menu in WordPress
+Please refer to full installation instructions at https://github.com/voceconnect/widget-data/wiki.
+
+== Frequently Asked Questions ==
+
+If you have any issues with this plugin, please log them at the Github repo for this plugin.
+This is done to centralize our issues and make sure nothing goes unnoticed.
+
+The URL to log an issue is https://github.com/voceconnect/widget-data/issues.
+
+See Frequently Asked Questions here: https://github.com/voceconnect/widget-data/wiki/Frequently-Asked-Questions.
 
 == Screenshots ==
 
@@ -27,27 +39,4 @@ Gives the user the ability to export the current widget settings and states as a
 
 == Changelog ==
 
-= 1.2 =
-* Adding PHP version check to avoid errors upon activation.
-* Using locally uploaded file instead of url to retreive uploaded json
-
-= 1.1 =
-* Refactoring for performance / integrating changes made by Automattic
-* Better styles for wp-admin
-
-= 1.0 =
-* Refactoring for performace.
-* Documentation
-* Better styles for wp-admin
-
-= 0.4 =
-* Fixing headers already sent error
-
-= 0.3 =
-* Fixing export of empty file by instead of creating temp file, it will just output the json
-
-= 0.2 =
-* Fixing blank redirect with WP installed within sub directory
-
-= 0.1 =
-* First Version
+Please refer to full changelog at https://github.com/voceconnect/widget-data/releases.

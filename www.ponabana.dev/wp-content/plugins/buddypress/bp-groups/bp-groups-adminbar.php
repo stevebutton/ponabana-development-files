@@ -3,7 +3,7 @@
 /**
  * BuddyPress Groups Toolbar
  *
- * Handles the groups functions related to the WordPress Toolbar
+ * Handles the groups functions related to the WordPress Toolbar.
  *
  * @package BuddyPress
  * @subpackage Groups
@@ -13,12 +13,14 @@
 if ( !defined( 'ABSPATH' ) ) exit;
 
 /**
- * Adds the Group Admin top-level menu to group pages
+ * Add the Group Admin top-level menu when viewing group pages.
  *
- * @package BuddyPress
- * @since BuddyPress (1.5)
+ * @since BuddyPress (1.5.0)
  *
- * @todo Add dynamic menu items for group extensions
+ * @todo Add dynamic menu items for group extensions.
+ *
+ * @return bool|null False if not on a group page, or if user does not have
+ *        access to group admin options.
  */
 function bp_groups_group_admin_menu() {
 	global $wp_admin_bar, $bp;
@@ -58,11 +60,11 @@ function bp_groups_group_admin_menu() {
 	) );
 
 	// Group Admin > Group avatar
-	if ( !(int)bp_get_option( 'bp-disable-avatar-uploads' ) ) {
+	if ( !(int)bp_get_option( 'bp-disable-avatar-uploads' ) && $bp->avatar->show_avatars ) {
 		$wp_admin_bar->add_menu( array(
 			'parent' => $bp->group_admin_menu_id,
 			'id'     => 'group-avatar',
-			'title'  => __( 'Edit Avatar', 'buddypress' ),
+			'title'  => __( 'Edit Profile Photo', 'buddypress' ),
 			'href'   =>  bp_get_groups_action_link( 'admin/group-avatar' )
 		) );
 	}
@@ -106,13 +108,13 @@ function bp_groups_group_admin_menu() {
 add_action( 'admin_bar_menu', 'bp_groups_group_admin_menu', 99 );
 
 /**
- * Remove rogue WP core edit menu when viewing a group
+ * Remove rogue WP core Edit menu when viewing a single group.
  *
- * @since BuddyPress (1.6)
+ * @since BuddyPress (1.6.0)
  */
 function bp_groups_remove_edit_page_menu() {
 	if ( bp_is_group() ) {
 		remove_action( 'admin_bar_menu', 'wp_admin_bar_edit_menu', 80 );
 	}
 }
-add_action( 'bp_init', 'bp_groups_remove_edit_page_menu', 99 );
+add_action( 'add_admin_bar_menus', 'bp_groups_remove_edit_page_menu' );

@@ -6,8 +6,10 @@ abstract class CMA_BaseController
     const MESSAGE_ERROR     = 'error';
     const ADMIN_SETTINGS    = 'CMA_admin_settings';
     const ADMIN_ABOUT       = 'CMA_admin_about';
+    const ADMIN_ADDONS = 'CMA_addons';
     const ADMIN_PRO         = 'CMA_admin_pro';
     const OPTION_TITLES     = 'CMA_panel_titles';
+    const ADMIN_BP_NOTIFY = 'CMA_BP_notify';
 
     protected static $_titles          = array();
     protected static $_fired           = false;
@@ -27,7 +29,16 @@ abstract class CMA_BaseController
     {
         add_action('CMA_custom_post_type_nav', array(get_class(), 'addCustomPostTypeNav'), 1, 1);
         add_action('CMA_custom_taxonomy_nav', array(get_class(), 'addCustomTaxonomyNav'), 1, 1);
-        add_action('admin_menu', array(get_class(), 'registerAdminPages'));
+        if (current_user_can('manage_options')) {
+        	add_action('admin_menu', array(get_class(), 'registerAdminPages'));
+        }
+        
+    	if (isset($_GET['page'])) {
+    		if ($_GET['page'] == self::ADMIN_BP_NOTIFY) {
+    			CMA_BuddyPress::notifyAllUsers();
+    		}
+    	}
+        
     }
 
     public static function initSessions()
@@ -75,7 +86,7 @@ abstract class CMA_BaseController
 //        flush_rewrite_rules();
         add_filter('query_vars', array(get_class(), 'registerQueryVars'));
         add_filter('wp_title', array(get_class(), '_showPageTitle'), 1, 3);
-        add_filter('the_posts', array(get_class(), 'editQuery'), 10, 1);
+        add_filter('the_posts', array(get_class(), 'editQuery'), 10, 2);
         add_filter('the_content', array(get_class(), 'showPageContent'), 10, 1);
         if(!is_admin()) wp_enqueue_style('CMA-css', CMA_URL . '/views/resources/app.css');
     }
@@ -105,7 +116,7 @@ abstract class CMA_BaseController
         $rules = get_option('rewrite_rules');
         foreach(self::$_pages as $page)
         {
-            if(!isset($rules['^' . $slug . '(?=\/|$)']))
+            if(!isset($rules['^' . $page['slug'] . '(?=\/|$)']))
             {
                 global $wp_rewrite;
                 $wp_rewrite->flush_rules();
@@ -199,14 +210,13 @@ abstract class CMA_BaseController
         return $title;
     }
 
-    public static function editQuery($posts)
+    public static function editQuery($posts, WP_Query $wp_query)
     {
         if(!self::$_fired)
         {
-            global $wp_query;
             foreach(self::$_pages as $page)
             {
-                if(get_query_var($page['query_var']) == 1)
+                if($wp_query->get($page['query_var']) == 1)
                 {
                     if(!empty($page['headerCallback']))
                     {
@@ -525,12 +535,13 @@ abstract class CMA_BaseController
         wp_enqueue_script('jquery');
         add_submenu_page(apply_filters('CMA_admin_parent_menu', 'options-general.php'), __('CM Answers Settings', 'cm-answers'), __('Settings', 'cm-answers'), 'manage_options', self::ADMIN_SETTINGS, array(get_class(), 'displaySettingsPage'));
         add_submenu_page(apply_filters('CMA_admin_parent_menu', 'options-general.php'), __('About', 'cm-answers'), __('About', 'cm-answers'), 'manage_options', self::ADMIN_ABOUT, array(get_class(), 'displayAboutPage'));
+        add_submenu_page(apply_filters('CMA_admin_parent_menu', 'options-general.php'), 'Add-ons', 'Add-ons', 'manage_options', self::ADMIN_ADDONS, array(get_class(), 'displayAboutPage'));
         add_submenu_page(apply_filters('CMA_admin_parent_menu', 'options-general.php'), __('Pro Version', 'cm-answers'), __('Pro Version', 'cm-answers'), 'manage_options', self::ADMIN_PRO, array(get_class(), 'displayProPage'));
         global $submenu;
         $current_user = wp_get_current_user();
         if(user_can($current_user, 'edit_posts'))
         {
-            $submenu[apply_filters('CMA_admin_parent_menu', 'options-general.php')][500] = array('User Guide', 'manage_options', 'http://www.cminds.com/cm-answers-user-guide/');
+            $submenu[apply_filters('CMA_admin_parent_menu', 'options-general.php')][500] = array('User Guide', 'manage_options', 'http://answers.cminds.com/cm-answers-user-guide/');
         }
     }
 
@@ -589,13 +600,16 @@ abstract class CMA_BaseController
         require(CMA_PATH . '/views/backend/template.phtml');
     }
 
-    public static function displayAboutPage()
+	public static function displayAboutPage()
     {
         ob_start();
+        if ($_GET['page'] == self::ADMIN_ABOUT) {
+        	$iframeURL = 'https://plugins.cminds.com/product-catalog/?showfilter=No&cat=Plugin&nitems=3';
+        } else {
+        	$iframeURL = 'https://plugins.cminds.com/product-catalog/?showfilter=No&amp;tags=Answer&amp;nitems=3';
+        }
         require(CMA_PATH . '/views/backend/about.phtml');
-        $content = ob_get_contents();
-        ob_end_clean();
-        self::displayAdminPage($content);
+        self::displayAdminPage(ob_get_clean());
     }
 
     public static function displayProPage()
@@ -616,7 +630,7 @@ abstract class CMA_BaseController
     {
         echo self::getAdminNav();
         ?>
-        <script>
+        <script type="text/javascript">
             jQuery(document).ready(function($){
                 $('#col-container').prepend($('#CMA_admin_nav'));
             });

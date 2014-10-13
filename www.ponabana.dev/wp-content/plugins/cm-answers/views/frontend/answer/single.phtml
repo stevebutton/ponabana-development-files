@@ -3,10 +3,10 @@ get_header();
 the_post();
 $thread = CMA_AnswerThread::getInstance($post->ID);
 ?>
-<div class="cma-main">
-    <div class="cma-wrapper">
-        <div id="primary" class="site-content cma-content">
-            <div id="content" role="main">
+<div id="primary" class="site-content cma-content">
+    <div class="cma-main">
+        <div class="cma-wrapper">
+            <div id="content" role="main" class="entry-content">
                 <header class="entry-header">
                     <h1 class="entry-title"><?php echo $thread->getTitle(); ?><a class="cma-backlink" href="<?php echo get_post_type_archive_link(CMA_AnswerThread::POST_TYPE); ?>">&laquo; <?php _e('Back to Questions List', 'cm-answers'); ?></a></h1>
 
@@ -23,26 +23,26 @@ $thread = CMA_AnswerThread::getInstance($post->ID);
                                 thumbs(comment_id, 'down');
                             }<?php endif; ?>
                         function thumbs(comment_id, upDown){
-                            jQuery('#comment-' + comment_id + ' .cma-answer-rating-loading').show();
+                            jQuery('#answer-' + comment_id + ' .cma-answer-rating-loading').show();
                             jQuery.post(self.location, {'cma-action': 'vote', 'cma-comment': comment_id, 'cma-value': upDown}, function(data){
                                 if(data.success == 1){
-                                    jQuery('#comment-' + comment_id + ' .cma-answer-rating-count').text(data.message);
+                                    jQuery('#answer-' + comment_id + ' .cma-answer-rating-count').text(data.message);
                                     jQuery().toastmessage('showSuccessToast', "<?php _e('Thank you for voting!', 'cm-answers'); ?>");
                                 }else {
                                     jQuery().toastmessage('showErrorToast', data.message);
                                 }
-                                jQuery('#comment-' + comment_id + ' .cma-answer-rating-loading').hide();
+                                jQuery('#answer-' + comment_id + ' .cma-answer-rating-loading').hide();
                             });
                         }
                     </script>
                 <?php endif; ?>
-                <table class="cma-answers-list">
+                <table class="cma-answers-list cma-question-table">
                     <tr>
-                        <td class="cma-answer-content">
-                            <div class="cma-answer-body"><?php echo $thread->getContent(); ?></div>
-                            <div class="cma-answer-meta">
-                                <div class="cma-answer-author"><?php printf(__('Posted by %s', 'cm-answers'), $thread->getAuthor()->display_name); ?></div>
-                                <div class="cma-answer-date"><?php printf(__('Asked on %s', 'cm-answers'), $thread->getCreationDate()); ?></div>
+                        <td class="cma-question-content">
+                            <div class="cma-question-body"><?php echo $thread->getContent(); ?></div>
+                            <div class="cma-question-meta">
+                                <div class="cma-question-author"><?php printf(__('Posted by %s', 'cm-answers'), $thread->getAuthor()->display_name); ?></div>
+                                <div class="cma-question-date"><?php printf(__('Asked on %s', 'cm-answers'), $thread->getCreationDate()); ?></div>
                             </div>
                         </td>
                     </tr>
@@ -61,7 +61,7 @@ $thread = CMA_AnswerThread::getInstance($post->ID);
                     foreach($answers as $answer):
                         ?>
                         <table class="cma-answers-list">
-                            <tr id="comment-<?php echo $answer['id']; ?>">
+                            <tr id="answer-<?php echo $answer['id']; ?>">
                                 <?php if(CMA_AnswerThread::isRatingAllowed()): ?><td class="cma-answer-rating" >
                                         <div class="cma-answer-rating-loading"></div>
                                         <a href="javascript:void(0)" onclick="thumbsUp(<?php echo $answer['id']; ?>)" class="cma-thumbs-up" title="<?php _e('Thumbs Up!', 'cm-answers'); ?>">▲</a>
@@ -122,7 +122,9 @@ $thread = CMA_AnswerThread::getInstance($post->ID);
                 </div>
             </div>
             <span class="cma_poweredby">
-                <a href="http://plugins.cminds.com/" target="_blank" class="cma_poweredbylink">CreativeMinds WordPress Plugins</a> <a href="http://answers.cminds.com/" target="_blank" class="cma_poweredbylink">Answers</a>
+            	<a href="http://cminds.com/" target="_blank" class="cma_poweredbylink">CreativeMinds WordPress</a>
+            	<a href="http://plugins.cminds.com/" target="_blank" class="cma_poweredbylink">Plugin</a>
+            	<a href="http://answers.cminds.com/" target="_blank" class="cma_poweredbylink">CM Answers</a>
             </span>
         </div>
         <?php if(CMA_AnswerThread::isSidebarEnabled() && is_active_sidebar('cm-answers-sidebar')): ?>

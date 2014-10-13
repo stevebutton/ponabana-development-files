@@ -6,6 +6,19 @@ if ($enable_rating) {
 	$rating         = get_post_meta($post_id, '_g7_rating', true);
 	$overall_rating = get_post_meta($post_id, '_g7_overall_rating', true);
 }
+$image_view = get_post_meta($post_id, '_g7_featured_image', true);
+switch ($image_view) {
+	case 1:
+	default:
+		$featured_image = g7_image(900, 450, 0, false);
+		break;
+	case 2:
+		$featured_image = g7_image(900, null, 0, false);
+		break;
+	case 3:
+		$featured_image = '';
+		break;
+}
 ?>
 <article id="post-<?php the_ID(); ?>" <?php post_class('box mb20'); ?>>
 
@@ -26,9 +39,11 @@ if ($enable_rating) {
 	</header>
 
 	<?php if (g7_option('single_featured_image') && (has_post_thumbnail())) : ?>
-	<div class="post-image clearfix mb20">
-		<?php echo g7_image(900, 450, 0, false); ?>
-	</div>
+		<?php if ($featured_image) : ?>
+			<div class="post-image clearfix mb20">
+				<?php echo $featured_image; ?>
+			</div>
+		<?php endif; ?>
 	<?php endif; ?>
 
 	<div class="entry-content clearfix mb20">
@@ -51,7 +66,11 @@ if ($enable_rating) {
 	</div>
 
 	<footer class="entry-footer">
-		<?php wp_link_pages(array('before' => '<p><strong>Pages:</strong> ', 'after' => '</p>', 'next_or_number' => 'number')); ?>
+		<?php wp_link_pages(array(
+			'before'         => '<p><strong>' . __('Pages', 'g7theme') . ':</strong> ',
+			'after'          => '</p>',
+			'next_or_number' => 'number',
+		)); ?>
 
 		<?php if (g7_option('single_tags')) : ?>
 		<div class="tags">

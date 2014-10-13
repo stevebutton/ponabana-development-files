@@ -1,4 +1,6 @@
 .htaccess
+resources-ignore/
+/resources-ignore/
 www.ponabana.dev/resources-ignore/
 www.ponabana.dev/wp-config.php
 www.ponabana.dev/wp-content/blogs.dir/

@@ -116,7 +116,7 @@ class DUP_Util {
 	}
 	
 	/** 
-	 * Size of the directory recuresivly
+	 * Size of the directory recuresivly in bytes
 	 */
 	static public function GetDirectorySize($dir) {
 		if(!file_exists($dir)) 
@@ -135,9 +135,14 @@ class DUP_Util {
 	
 	
 	public static function IsShellExecAvailable() {
-
-		if (array_intersect(array('shell_exec', 'escapeshellarg', 'escapeshellcmd'), array_map('trim', explode(',', @ini_get('disable_functions')))))
+		
+		if (array_intersect(array('shell_exec', 'escapeshellarg', 'escapeshellcmd', 'extension_loaded'), array_map('trim', explode(',', @ini_get('disable_functions')))))
 			return false;
+		
+		//Suhosin: http://www.hardened-php.net/suhosin/
+		//Will cause PHP to silently fail.
+		if (extension_loaded('suhosin'))
+		  return false;
 
 		// Can we issue a simple echo command?
 		if (!@shell_exec('echo duplicator'))
@@ -150,10 +155,44 @@ class DUP_Util {
 		if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
 			return true;
 		}
-		
 		return false;
 	}
 
+	/**
+	*  Creates the snapshot directory if it doesn't already exisit
+	*/
+	public static function GetCurrentUser() {
+		$unreadable =  'Undetectable';
+		if (function_exists('get_current_user') && is_callable('get_current_user')) {
+			$user = get_current_user(); 
+			return strlen($user) ? $user : $unreadable;
+		}
+		return $unreadable;
+	}
+	
+	/**
+	*  Gets the owner of the PHP process
+	*/
+	public static function GetProcessOwner() {
+		$unreadable = 'Undetectable';
+		$user = '';
+		try {
+			if (function_exists('exec')) {
+				$user = exec('whoami');
+			} 
+			
+			if (! strlen($user) && function_exists('posix_getpwuid') && function_exists('posix_geteuid')) {
+				$user = posix_getpwuid(posix_geteuid());
+				$user = $user['name'];  
+			}
+			
+			return strlen($user) ? $user : $unreadable;
+
+		} catch (Exception $ex) {
+			return $unreadable;
+		}
+	}
+	
 	/**
 	*  Creates the snapshot directory if it doesn't already exisit
 	*/
@@ -192,9 +231,15 @@ class DUP_Util {
 		@fclose($tokenfile);
 
 		//SSDIR: Create .htaccess
-		$htfile = @fopen($path_ssdir . '/.htaccess', 'w');
-		@fwrite($htfile, "Options -Indexes");
-		@fclose($htfile);
+		$storage_htaccess_off = DUP_Settings::Get('storage_htaccess_off');
+		if ($storage_htaccess_off) {
+			@unlink($path_ssdir . '/.htaccess');
+		} else {
+			$htfile = @fopen($path_ssdir . '/.htaccess', 'w');
+			$htoutput = "Options -Indexes" ;
+			@fwrite($htfile, $htoutput);
+			@fclose($htfile);
+		}
 
 		//SSDIR: Robots.txt file
 		$robotfile = @fopen($path_ssdir . '/robots.txt', 'w');

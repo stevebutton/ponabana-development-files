@@ -56,3 +56,7 @@
 .g7-category-dropdown {
 	width: 100%;
 }
+.g7-dragdrop .widget-inside {
+	border-top: 0 none;
+	padding: 12px 12px 10px;
+}

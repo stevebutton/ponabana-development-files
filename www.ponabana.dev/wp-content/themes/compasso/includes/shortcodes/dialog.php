@@ -6,7 +6,7 @@ require_once($wp_root . '/wp-load.php');
 
 $wp_url = get_option('siteurl');
 
-if ( ! is_user_logged_in() || ! current_user_can('edit_posts')) {
+if (!is_user_logged_in() || ! current_user_can('edit_posts')) {
 	exit();
 }
 
@@ -24,23 +24,23 @@ $shortcodes = array(
 			'terracotta',
 			'pink',
 			'cranberry',
-			'sunset'
+			'sunset',
 		),
 		'size' => array(
 			'small',
 			'medium',
-			'large'
+			'large',
 		),
-		'link' => ''
+		'link' => '',
 	),
 	'message' => array(
 		'type' => array(
 			'info',
 			'success',
 			'error',
-			'warning'
+			'warning',
 		),
-		'title' => ''
+		'title' => '',
 	),
 	'columns' => array(
 		'type' => array(
@@ -53,8 +53,8 @@ $shortcodes = array(
 			'3/4 - 1/4',
 			'1/4 - 1/4 - 1/2',
 			'1/4 - 1/2 - 1/4',
-			'1/2 - 1/4 - 1/4'
-		)
+			'1/2 - 1/4 - 1/4',
+		),
 	),
 	'highlight' => array(
 		'color' => array(
@@ -64,36 +64,36 @@ $shortcodes = array(
 			'yellow',
 			'orange',
 			'gray',
-			'brown'
-		)
+			'brown',
+		),
 	),
 	'dropcap' => array(
 		'type' => array(
 			'circle',
 			'square',
-			'none'
-		)
+			'none',
+		),
 	),
 	'social' => array(
 		'type' => unserialize(G7_SOCIAL),
 		'link' => '',
 		'size' => array(
 			'16',
-			'32'
+			'32',
 		)
 	),
 	'blockquote' => array(
 		'cite' => '',
-		'citelink' => ''
+		'citelink' => '',
 	),
 	'pullquote' => array(
 		'align' => array(
 			'left',
-			'right'
+			'right',
 		),
 		'cite' => '',
-		'citelink' => ''
-	)
+		'citelink' => '',
+	),
 );
 
 $nct = array('social', 'separator');
