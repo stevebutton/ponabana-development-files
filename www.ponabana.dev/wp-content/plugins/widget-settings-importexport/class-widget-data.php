@@ -2,9 +2,6 @@
 
 class Widget_Data {
 
-	static $export_page;
-	static $import_page;
-
 	/**
 	 * initialize
 	 */
@@ -21,21 +18,19 @@ class Widget_Data {
 	 * Register admin pages
 	 */
 	public static function add_admin_menus() {
-		//import
-		self::$import_page = add_management_page( 'Widget Settings Import', 'Widget Settings Import', 'manage_options', 'widget-settings-import', array( __CLASS__, 'import_settings_page' ) );
 		// export
-		self::$export_page = add_management_page( 'Widget Settings Export', 'Widget Settings Export', 'manage_options', 'widget-settings-export', array( __CLASS__, 'export_settings_page' ) );
+		$export_page = add_management_page( 'Widget Settings Export', 'Widget Settings Export', 'manage_options', 'widget-settings-export', array( __CLASS__, 'export_settings_page' ) );
+		//import
+		$import_page = add_management_page( 'Widget Settings Import', 'Widget Settings Import', 'manage_options', 'widget-settings-import', array( __CLASS__, 'import_settings_page' ) );
 
-		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_admin_scripts' ) );
-	}
+		add_action( 'admin_enqueue_scripts', function($hook) use ($export_page, $import_page){
+			if( !in_array( $hook, array( $export_page, $import_page ) ) )
+				return;
 
-	public static function enqueue_admin_scripts( $hook ) {
-		if( !in_array( $hook, array( self::$export_page, self::$import_page ) ) )
-			return;
-
-		wp_enqueue_style( 'widget_data', plugins_url( '/widget-data.css', __FILE__ ) );
-		wp_enqueue_script( 'widget_data', plugins_url( '/widget-data.js', __FILE__ ), array( 'jquery', 'wp-ajax-response' ) );
-		wp_localize_script( 'widget_data', 'widgets_url', get_admin_url( false, 'widgets.php' ) );
+			wp_enqueue_style( 'widget_data', plugins_url( '/widget-data.css', __FILE__ ) );
+			wp_enqueue_script( 'widget_data', plugins_url( '/widget-data.js', __FILE__ ), array( 'jquery', 'wp-ajax-response' ) );
+			wp_localize_script( 'widget_data', 'widgets_url', get_admin_url( false, 'widgets.php' ) );
+		} );
 	}
 
 	/**
@@ -233,7 +228,6 @@ class Widget_Data {
 		$widgets_array = array( );
 		foreach ( $widgets as $widget ) {
 			$widget_val = get_option( 'widget_' . $widget['type'] );
-			$widget_val = apply_filters( 'widget_data_export', $widget_val, $widget['type'] );
 			$multiwidget_val = $widget_val['_multiwidget'];
 			$widgets_array[$widget['type']][$widget['type-index']] = $widget_val[$widget['type-index']];
 			if ( isset( $widgets_array[$widget['type']]['_multiwidget'] ) )
@@ -296,10 +290,8 @@ class Widget_Data {
 		if ( isset( $new_widgets ) && isset( $current_sidebars ) ) {
 			update_option( 'sidebars_widgets', $current_sidebars );
 
-			foreach ( $new_widgets as $title => $content ) {
-				$content = apply_filters( 'widget_data_import', $content, $title );
+			foreach ( $new_widgets as $title => $content )
 				update_option( 'widget_' . $title, $content );
-			}
 
 			return true;
 		}
@@ -316,9 +308,6 @@ class Widget_Data {
 			header( "Content-Description: File Transfer" );
 			header( "Content-Disposition: attachment; filename=widget_data.json" );
 			header( "Content-Type: application/octet-stream" );
-			unset($_POST['action']);
-			unset($_POST['_wpnonce']);
-			unset($_POST['_wp_http_referer']);
 			echo self::parse_export_data( $_POST );
 			exit;
 		}

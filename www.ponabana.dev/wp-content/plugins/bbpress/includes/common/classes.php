@@ -386,13 +386,19 @@ class BBP_Walker_Reply extends Walker {
 		}
 
 		// Style for div or list element
-		if ( !empty( $args['style'] ) && ( 'div' === $args['style'] ) ) {
-			echo "<div>\n";
+		if ( 'div' === $args['style'] ) {
+			$tag = 'div';
 		} else {
-			echo "<li>\n";
-		}
+			$tag = 'li';
+		} ?>
 
-		bbp_get_template_part( 'loop', 'single-reply' );
+		<<?php echo $tag ?>>
+
+			<?php bbp_get_template_part( 'loop', 'single-reply' ); ?>
+
+		</<?php echo $tag ?>>
+
+		<?php
 	}
 
 	/**

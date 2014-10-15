@@ -1,11 +1,9 @@
 <?php
 
 /**
- * BuddyPress Blogs Loader
+ * BuddyPress Blogs Streams Loader
  *
- * The blogs component tracks posts and comments to member activity streams,
- * shows blogs the member can post to in their profiles, and caches useful
- * information from those blogs to make quering blogs in bulk more performant.
+ * An blogs stream component, for users, groups, and blog tracking.
  *
  * @package BuddyPress
  * @subpackage Blogs Core
@@ -17,39 +15,32 @@ if ( !defined( 'ABSPATH' ) ) exit;
 class BP_Blogs_Component extends BP_Component {
 
 	/**
-	 * Start the blogs component creation process.
+	 * Start the blogs component creation process
 	 *
-	 * @since BuddyPress (1.5.0)
+	 * @since BuddyPress (1.5)
 	 */
-	public function __construct() {
+	function __construct() {
 		parent::start(
 			'blogs',
-			__( 'Site Directory', 'buddypress' ),
-			buddypress()->plugin_dir,
-			array(
-				'adminbar_myaccount_order' => 30
-			)
+			__( 'Site Tracking', 'buddypress' ),
+			BP_PLUGIN_DIR
 		);
 	}
 
 	/**
-	 * Set up global settings for the blogs component.
+	 * Setup globals
 	 *
 	 * The BP_BLOGS_SLUG constant is deprecated, and only used here for
 	 * backwards compatibility.
 	 *
-	 * @since BuddyPress (1.5.0)
-	 *
-	 * @see BP_Component::setup_globals() for description of parameters.
-	 *
-	 * @param array $args See {@link BP_Component::setup_globals()}.
+	 * @since BuddyPress (1.5)
+	 * @global BuddyPress $bp The one true BuddyPress instance
 	 */
 	public function setup_globals( $args = array() ) {
-		$bp = buddypress();
+		global $bp;
 
-		if ( ! defined( 'BP_BLOGS_SLUG' ) ) {
+		if ( !defined( 'BP_BLOGS_SLUG' ) )
 			define ( 'BP_BLOGS_SLUG', $this->id );
-		}
 
 		// Global tables for messaging component
 		$global_tables = array(
@@ -57,12 +48,9 @@ class BP_Blogs_Component extends BP_Component {
 			'table_name_blogmeta' => $bp->table_prefix . 'bp_user_blogs_blogmeta',
 		);
 
-		$meta_tables = array(
-			'blog' => $bp->table_prefix . 'bp_user_blogs_blogmeta',
-		);
-
-		// All globals for blogs component.
-		$args = array(
+		// All globals for messaging component.
+		// Note that global_tables is included in this array.
+		$globals = array(
 			'slug'                  => BP_BLOGS_SLUG,
 			'root_slug'             => isset( $bp->pages->blogs->slug ) ? $bp->pages->blogs->slug : BP_BLOGS_SLUG,
 			'has_directory'         => is_multisite(), // Non-multisite installs don't need a top-level Sites directory, since there's only one site
@@ -70,22 +58,16 @@ class BP_Blogs_Component extends BP_Component {
 			'search_string'         => __( 'Search sites...', 'buddypress' ),
 			'autocomplete_all'      => defined( 'BP_MESSAGES_AUTOCOMPLETE_ALL' ),
 			'global_tables'         => $global_tables,
-			'meta_tables'           => $meta_tables,
 		);
 
 		// Setup the globals
-		parent::setup_globals( $args );
+		parent::setup_globals( $globals );
 	}
 
 	/**
-	 * Include bp-blogs files.
-	 *
-	 * @see BP_Component::includes() for description of parameters.
-	 *
-	 * @param array $includes See {@link BP_Component::includes()}.
+	 * Include files
 	 */
 	public function includes( $includes = array() ) {
-
 		// Files to include
 		$includes = array(
 			'cache',
@@ -96,41 +78,37 @@ class BP_Blogs_Component extends BP_Component {
 			'filters',
 			'activity',
 			'functions',
+			'buddybar'
 		);
 
-		if ( is_multisite() ) {
+		if ( is_multisite() )
 			$includes[] = 'widgets';
-		}
 
 		// Include the files
 		parent::includes( $includes );
 	}
 
 	/**
-	 * Set up component navigation for bp-blogs.
+	 * Setup BuddyBar navigation
 	 *
-	 * @see BP_Component::setup_nav() for a description of arguments.
-	 *
-	 * @param array $main_nav Optional. See BP_Component::setup_nav() for
-	 *        description.
-	 * @param array $sub_nav Optional. See BP_Component::setup_nav() for
-	 *        description.
+	 * @global BuddyPress $bp The one true BuddyPress instance
 	 */
 	public function setup_nav( $main_nav = array(), $sub_nav = array() ) {
-		$bp = buddypress();
+		global $bp;
 
 		/**
 		 * Blog/post/comment menus should not appear on single WordPress setups.
 		 * Although comments and posts made by users will still show on their
 		 * activity stream.
 		 */
-		if ( ! is_multisite() ) {
+		if ( !is_multisite() )
 			return false;
-		}
+
+		$sub_nav = array();
 
 		// Add 'Sites' to the main navigation
 		$main_nav =  array(
-			'name'                => sprintf( __( 'Sites <span>%d</span>', 'buddypress' ), bp_get_total_blog_count_for_user() ),
+			'name'                => sprintf( __( 'Sites <span>%d</span>', 'buddypress' ), bp_blogs_total_blogs_for_user() ),
 			'slug'                => $this->slug,
 			'position'            => 30,
 			'screen_function'     => 'bp_blogs_screen_my_blogs',
@@ -163,33 +141,30 @@ class BP_Blogs_Component extends BP_Component {
 	}
 
 	/**
-	 * Set up bp-blogs integration with the WordPress admin bar.
+	 * Set up the Toolbar
 	 *
-	 * @since BuddyPress (1.5.0)
-	 *
-	 * @see BP_Component::setup_admin_bar() for a description of arguments.
-	 *
-	 * @param array $wp_admin_nav See BP_Component::setup_admin_bar()
-	 *        for description.
+	 * @global BuddyPress $bp The one true BuddyPress instance
 	 */
 	public function setup_admin_bar( $wp_admin_nav = array() ) {
-		$bp = buddypress();
+		global $bp;
 
 		/**
-		 * Site/post/comment menus should not appear on single WordPress setups.
-		 *
-		 * Comments and posts made by users will still show in their activity.
+		 * Blog/post/comment menus should not appear on single WordPress setups.
+		 * Although comments and posts made by users will still show on their
+		 * activity stream.
 		 */
-		if ( ! is_multisite() ) {
+		if ( !is_multisite() )
 			return false;
-		}
+
+		// Prevent debug notices
+		$wp_admin_nav = array();
 
 		// Menus for logged in user
 		if ( is_user_logged_in() ) {
 
 			$blogs_link = trailingslashit( bp_loggedin_user_domain() . $this->slug );
 
-			// Add the "Sites" sub menu
+			// Add the "Blogs" sub menu
 			$wp_admin_nav[] = array(
 				'parent' => $bp->my_account_menu_id,
 				'id'     => 'my-account-' . $this->id,
@@ -197,7 +172,7 @@ class BP_Blogs_Component extends BP_Component {
 				'href'   => trailingslashit( $blogs_link )
 			);
 
-			// My Sites
+			// My Blogs
 			$wp_admin_nav[] = array(
 				'parent' => 'my-account-' . $this->id,
 				'id'     => 'my-account-' . $this->id . '-my-sites',
@@ -205,12 +180,12 @@ class BP_Blogs_Component extends BP_Component {
 				'href'   => trailingslashit( $blogs_link )
 			);
 
-			// Create a Site
+			// Create a Blog
 			if ( bp_blog_signup_enabled() ) {
 				$wp_admin_nav[] = array(
 					'parent' => 'my-account-' . $this->id,
 					'id'     => 'my-account-' . $this->id . '-create',
-					'title'  => __( 'Create a Site', 'buddypress' ),
+					'title'  => __( 'Create a Blog', 'buddypress' ),
 					'href'   => trailingslashit( bp_get_blogs_directory_permalink() . 'create' )
 				);
 			}
@@ -220,12 +195,14 @@ class BP_Blogs_Component extends BP_Component {
 	}
 
 	/**
-	 * Set up the title for pages and <title>
+	 * Sets up the title for pages and <title>
+	 *
+	 * @global BuddyPress $bp The one true BuddyPress instance
 	 */
-	public function setup_title() {
-		$bp = buddypress();
+	function setup_title() {
+		global $bp;
 
-		// Set up the component options navigation for Site
+		// Set up the component options navigation for Blog
 		if ( bp_is_blogs_component() ) {
 			if ( bp_is_my_profile() ) {
 				if ( bp_is_active( 'xprofile' ) ) {
@@ -248,10 +225,8 @@ class BP_Blogs_Component extends BP_Component {
 	}
 }
 
-/**
- * Set up the bp-blogs component.
- */
 function bp_setup_blogs() {
-	buddypress()->blogs = new BP_Blogs_Component();
+	global $bp;
+	$bp->blogs = new BP_Blogs_Component();
 }
 add_action( 'bp_setup_components', 'bp_setup_blogs', 6 );

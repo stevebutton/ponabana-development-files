@@ -85,13 +85,15 @@ function bbp_has_search_results( $args = '' ) {
 	// Parse arguments against default values
 	$r = bbp_parse_args( $args, $default, 'has_search_results' );
 
+	// Don't bother if we don't have search terms
+	if ( empty( $r['s'] ) )
+		return false;
+
 	// Get bbPress
 	$bbp = bbpress();
 
 	// Call the query
-	if ( ! empty( $r['s'] ) ) {
-		$bbp->search_query = new WP_Query( $r );
-	}
+	$bbp->search_query = new WP_Query( $r );
 
 	// Add pagination values to query object
 	$bbp->search_query->posts_per_page = $r['posts_per_page'];
@@ -100,8 +102,12 @@ function bbp_has_search_results( $args = '' ) {
 	// Never home, regardless of what parse_query says
 	$bbp->search_query->is_home        = false;
 
+	// Found posts
+	if ( !$bbp->search_query->found_posts )
+		return false;
+
 	// Only add pagination is query returned results
-	if ( ! empty( $bbp->search_query->found_posts ) && ! empty( $bbp->search_query->posts_per_page ) ) {
+	if ( (int) $bbp->search_query->found_posts && (int) $bbp->search_query->posts_per_page ) {
 
 		// Array of arguments to add after pagination links
 		$add_args = array();
@@ -264,7 +270,7 @@ function bbp_search_url() {
 
 		// Unpretty permalinks
 		} else {
-			$url = add_query_arg( array( bbp_get_search_rewrite_id() => '' ), home_url( '/' ) );
+			$url = add_query_arg( array( 'bbp_search' => '' ), home_url( '/' ) );
 		}
 
 		return apply_filters( 'bbp_get_search_url', $url );
@@ -314,7 +320,7 @@ function bbp_search_results_url() {
 
 		// Unpretty permalinks
 		} else {
-			$url = add_query_arg( array( bbp_get_search_rewrite_id() => urlencode( $search_terms ) ), home_url( '/' ) );
+			$url = add_query_arg( array( 'bbp_search' => urlencode( $search_terms ) ), home_url( '/' ) );
 		}
 
 		return apply_filters( 'bbp_get_search_results_url', $url );
@@ -342,7 +348,7 @@ function bbp_search_terms( $search_terms = '' ) {
 	 *
 	 * @param string $passed_terms Optional. Search terms
 	 * @uses sanitize_title() To sanitize the search terms
-	 * @uses get_query_var() To get the search terms from query variable
+	 * @uses get_query_var*( To get the search terms from query var 'bbp_search'
 	 * @return bool|string Search terms on success, false on failure
 	 */
 	function bbp_get_search_terms( $passed_terms = '' ) {

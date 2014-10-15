@@ -62,7 +62,10 @@ function ui_button_text(caption) {
 }
 
 
-function ure_show_add_role_dialog() {
+jQuery("#ure_add_role").button({
+    label: ure_data.add_role
+  }).click(function(event){
+    event.preventDefault();
     jQuery(function($) {
       $info = $('#ure_add_role_dialog');
       $info.dialog({                   
@@ -104,64 +107,11 @@ function ure_show_add_role_dialog() {
           }
       });    
       $('.ui-dialog-buttonpane button:contains("Add Role")').attr("id", "dialog-add-role-button");
-      $('#dialog-add-role-button').html(ui_button_text(ure_data.add_role));
-      $('.ui-dialog-buttonpane button:contains("Cancel")').attr("id", "add-role-dialog-cancel-button");
-      $('#add-role-dialog-cancel-button').html(ui_button_text(ure_data.cancel));
-    });    
-}
-
-
-    jQuery("#ure_add_role").button({
-        label: ure_data.add_role
-    }).click(function(event) {
-        event.preventDefault();
-        ure_show_add_role_dialog();
+      $('#dialog-add_role-button').html(ui_button_text(ure_data.add_role));
+      $('.ui-dialog-buttonpane button:contains("Cancel")').attr("id", "dialog-cancel-button");
+      $('#dialog-cancel-button').html(ui_button_text(ure_data.cancel));
     });
-
-    
-function ure_show_rename_role_dialog() {
-    jQuery(function($) {
-      $('#ure_rename_role_dialog').dialog({                   
-        dialogClass: 'wp-dialog',           
-        modal: true,
-        autoOpen: true, 
-        closeOnEscape: true,      
-        width: 400,
-        height: 230,
-        resizable: false,
-        title: ure_data.rename_role_title,
-        'buttons'       : {
-            'Rename Role': function () {              
-              var role_id = $('#ren_user_role_id').val();                            
-              var role_name = $('#ren_user_role_name').val();                            
-              $(this).dialog('close');
-              $.ure_postGo( ure_data.page_url, 
-                           { action: 'rename-role', user_role_id: role_id, user_role_name: role_name, ure_nonce: ure_data.wp_nonce} 
-                          );
-            },
-            Cancel: function() {
-                $(this).dialog('close');
-                return false;
-            }
-          }
-      });    
-      $('.ui-dialog-buttonpane button:contains("Rename Role")').attr("id", "dialog-rename-role-button");
-      $('#dialog-rename-role-button').html(ui_button_text(ure_data.rename_role));
-      $('.ui-dialog-buttonpane button:contains("Cancel")').attr("id", "rename-role-dialog-cancel-button");
-      $('#rename-role-dialog-cancel-button').html(ui_button_text(ure_data.cancel));
-      $('#ren_user_role_id').val(ure_current_role);
-      $('#ren_user_role_name').val(ure_current_role_name);
-    });    
-}
-    
-    
-    jQuery("#ure_rename_role").button({
-        label: ure_data.rename_role
-    }).click(function(event) {
-        event.preventDefault();
-        ure_show_rename_role_dialog();
-    });
-  
+  });
   
   jQuery("#ure_delete_role").button({
     label: ure_data.delete_role
@@ -187,7 +137,7 @@ function ure_show_rename_role_dialog() {
             $.ure_postGo(ure_data.page_url,
                     {action: 'delete-role', user_role_id: user_role_id, ure_nonce: ure_data.wp_nonce});
           },
-          Cancel: function() {
+          'Cancel': function() {
             $(this).dialog('close');
           }
         }
@@ -195,8 +145,8 @@ function ure_show_rename_role_dialog() {
       // translate buttons caption
       $('.ui-dialog-buttonpane button:contains("Delete Role")').attr("id", "dialog-delete-button");
       $('#dialog-delete-button').html(ui_button_text(ure_data.delete_role));
-      $('.ui-dialog-buttonpane button:contains("Cancel")').attr("id", "delete-role-dialog-cancel-button");
-      $('#delete-role-dialog-cancel-button').html(ui_button_text(ure_data.cancel));
+      $('.ui-dialog-buttonpane button:contains("Cancel")').attr("id", "dialog-cancel-button");
+      $('#dialog-cancel-button').html(ui_button_text(ure_data.cancel));
     });
   });
   
@@ -232,15 +182,15 @@ function ure_show_rename_role_dialog() {
               $.ure_postGo( ure_data.page_url, 
                            { action: 'add-new-capability', capability_id: capability_id, ure_nonce: ure_data.wp_nonce} );
             },
-            Cancel: function() {
+            'Cancel': function() {
                 $(this).dialog('close');
             }
           }
       });    
       $('.ui-dialog-buttonpane button:contains("Add Capability")').attr("id", "dialog-add-capability-button");
-      $('#dialog-add-capability-button').html(ui_button_text(ure_data.add_capability));
-      $('.ui-dialog-buttonpane button:contains("Cancel")').attr("id", "add-capability-dialog-cancel-button");
-      $('#add-capability-dialog-cancel-button').html(ui_button_text(ure_data.cancel));
+      $('#dialog-add_capability-button').html(ui_button_text(ure_data.add_capability));
+      $('.ui-dialog-buttonpane button:contains("Cancel")').attr("id", "dialog-cancel-button");
+      $('#dialog-cancel-button').html(ui_button_text(ure_data.cancel));
     });    
   });
   
@@ -269,7 +219,7 @@ function ure_show_rename_role_dialog() {
             $.ure_postGo(ure_data.page_url,
                     {action: 'delete-user-capability', user_capability_id: user_capability_id, ure_nonce: ure_data.wp_nonce});
           },
-          Cancel: function() {
+          'Cancel': function() {
             $(this).dialog('close');
           }
         }
@@ -277,8 +227,8 @@ function ure_show_rename_role_dialog() {
       // translate buttons caption
       $('.ui-dialog-buttonpane button:contains("Delete Capability")').attr("id", "dialog-delete-capability-button");
       $('#dialog-delete-capability-button').html(ui_button_text(ure_data.delete_capability));
-      $('.ui-dialog-buttonpane button:contains("Cancel")').attr("id", "delete-capability-dialog-cancel-button");
-      $('#delete-capability-dialog-cancel-button').html(ui_button_text(ure_data.cancel));
+      $('.ui-dialog-buttonpane button:contains("Cancel")').attr("id", "dialog-cancel-button");
+      $('#dialog-cancel-button').html(ui_button_text(ure_data.cancel));
     });    
   });
   
@@ -303,7 +253,7 @@ function ure_show_rename_role_dialog() {
             $.ure_postGo(ure_data.page_url,
                     {action: 'change-default-role', user_role_id: user_role_id, ure_nonce: ure_data.wp_nonce});
           },
-          Cancel: function() {
+          'Cancel': function() {
             $(this).dialog('close');
           }
         }
@@ -311,8 +261,8 @@ function ure_show_rename_role_dialog() {
       // translate buttons caption
       $('.ui-dialog-buttonpane button:contains("Set New Default Role")').attr("id", "dialog-default-role-button");
       $('#dialog-default-role-button').html(ui_button_text(ure_data.set_new_default_role));
-      $('.ui-dialog-buttonpane button:contains("Cancel")').attr("id", "default-role-dialog-cancel-button");
-      $('#default-role-dialog-cancel-button').html(ui_button_text(ure_data.cancel));
+      $('.ui-dialog-buttonpane button:contains("Cancel")').attr("id", "dialog-cancel-button");
+      $('#dialog-cancel-button').html(ui_button_text(ure_data.cancel));
     });
   });
   

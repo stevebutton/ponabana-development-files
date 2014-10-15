@@ -10,56 +10,18 @@
 // Exit if accessed directly
 if ( !defined( 'ABSPATH' ) ) exit;
 
-/**
- * BuddyPress Message Thread class.
- *
- * @since BuddyPress (1.0.0)
- */
 class BP_Messages_Thread {
-	/**
-	 * The message thread ID.
-	 *
-	 * @since BuddyPress (1.0.0)
-	 * @var int
-	 */
-	public $thread_id;
+	var $thread_id;
+	var $messages;
+	var $recipients;
+	var $sender_ids;
 
-	/**
-	 * The current messages.
-	 *
-	 * @since BuddyPress (1.0.0)
-	 * @var object
-	 */
-	public $messages;
-
-	/**
-	 * The current recipients in the message thread.
-	 *
-	 * @since BuddyPress (1.0.0)
-	 * @var object
-	 */
-	public $recipients;
-
-	/**
-	 * The user IDs of all messages in the message thread.
-	 *
-	 * @since BuddyPress (1.2.0)
-	 * @var array
-	 */
-	public $sender_ids;
-
-	/**
-	 * The unread count for the logged-in user.
-	 *
-	 * @since BuddyPress (1.2.0)
-	 * @var int
-	 */
-	public $unread_count;
+	var $unread_count;
 
 	/**
 	 * The content of the last message in this thread
 	 *
-	 * @since BuddyPress (1.2.0)
+	 * @since BuddyPress (1.2)
 	 * @var string
 	 */
 	public $last_message_content;
@@ -67,7 +29,7 @@ class BP_Messages_Thread {
 	/**
 	 * The date of the last message in this thread
 	 *
-	 * @since BuddyPress (1.2.0)
+	 * @since BuddyPress (1.2)
 	 * @var string
 	 */
 	public $last_message_date;
@@ -75,7 +37,7 @@ class BP_Messages_Thread {
 	/**
 	 * The ID of the last message in this thread
 	 *
-	 * @since BuddyPress (1.2.0)
+	 * @since BuddyPress (1.2)
 	 * @var int
 	 */
 	public $last_message_id;
@@ -83,7 +45,7 @@ class BP_Messages_Thread {
 	/**
 	 * The subject of the last message in this thread
 	 *
-	 * @since BuddyPress (1.2.0)
+	 * @since BuddyPress (1.2)
 	 * @var string
 	 */
 	public $last_message_subject;
@@ -91,7 +53,7 @@ class BP_Messages_Thread {
 	/**
 	 * The user ID of the author of the last message in this thread
 	 *
-	 * @since BuddyPress (1.2.0)
+	 * @since BuddyPress (1.2)
 	 * @var int
 	 */
 	public $last_sender_id;
@@ -99,92 +61,48 @@ class BP_Messages_Thread {
 	/**
 	 * Sort order of the messages in this thread (ASC or DESC).
 	 *
-	 * @since BuddyPress (1.5.0)
+	 * @since BuddyPress (1.5)
 	 * @var string
 	 */
 	public $messages_order;
 
-	/**
-	 * Constructor.
-	 *
-	 * @since BuddyPress (1.0.0)
-	 *
-	 * @param int $thread_id The message thread ID.
-	 * @param string $order The order to sort the messages. Either 'ASC' or 'DESC'.
-	 */
-	public function __construct( $thread_id = false, $order = 'ASC' ) {
-		if ( $thread_id ) {
+	function __construct( $thread_id = false, $order = 'ASC' ) {
+		if ( $thread_id )
 			$this->populate( $thread_id, $order );
-		}
 	}
 
-	/**
-	 * Populate method.
-	 *
-	 * Used in constructor.
-	 *
-	 * @since BuddyPress (1.0.0)
-	 *
-	 * @param int $thread_id The message thread ID.
-	 * @param string $order The order to sort the messages. Either 'ASC' or 'DESC'.
-	 */
-	public function populate( $thread_id, $order ) {
+	function populate( $thread_id, $order ) {
 		global $wpdb, $bp;
 
-		if( 'ASC' != $order && 'DESC' != $order ) {
+		if( 'ASC' != $order && 'DESC' != $order )
 			$order= 'ASC';
-		}
 
 		$this->messages_order = $order;
 		$this->thread_id      = $thread_id;
 
-		if ( !$this->messages = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$bp->messages->table_name_messages} WHERE thread_id = %d ORDER BY date_sent " . $order, $this->thread_id ) ) ) {
+		if ( !$this->messages = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$bp->messages->table_name_messages} WHERE thread_id = %d ORDER BY date_sent " . $order, $this->thread_id ) ) )
 			return false;
-		}
 
-		foreach ( (array) $this->messages as $key => $message ) {
+		foreach ( (array) $this->messages as $key => $message )
 			$this->sender_ids[$message->sender_id] = $message->sender_id;
-		}
 
 		// Fetch the recipients
 		$this->recipients = $this->get_recipients();
 
 		// Get the unread count for the logged in user
-		if ( isset( $this->recipients[bp_loggedin_user_id()] ) ) {
+		if ( isset( $this->recipients[bp_loggedin_user_id()] ) )
 			$this->unread_count = $this->recipients[bp_loggedin_user_id()]->unread_count;
-		}
 	}
 
-	/**
-	 * Mark a thread initialized in this class as read.
-	 *
-	 * @since BuddyPress (1.0.0)
-	 *
-	 * @see BP_Messages_Thread::mark_as_read()
-	 */
-	public function mark_read() {
+	function mark_read() {
 		BP_Messages_Thread::mark_as_read( $this->thread_id );
 	}
 
-	/**
-	 * Mark a thread initialized in this class as unread.
-	 *
-	 * @since BuddyPress (1.0.0)
-	 *
-	 * @see BP_Messages_Thread::mark_as_unread()
-	 */
-	public function mark_unread() {
+	function mark_unread() {
 		BP_Messages_Thread::mark_as_unread( $this->thread_id );
 	}
 
-	/**
-	 * Returns recipients for a message thread.
-	 *
-	 * @since BuddyPress (1.0.0)
-	 *
-	 * @return object
-	 */
-	public function get_recipients() {
+	function get_recipients() {
 		global $wpdb, $bp;
 
 		$recipients = array();
@@ -196,24 +114,12 @@ class BP_Messages_Thread {
 		return $recipients;
 	}
 
-	/** Static Functions ******************************************************/
+	/** Static Functions **/
 
-	/**
-	 * Delete a message thread.
-	 *
-	 * @since BuddyPress (1.0.0)
-	 *
-	 * @param int $thread_id The message thread ID
-	 * @return bool
-	 */
-	public static function delete( $thread_id ) {
+	function delete( $thread_id ) {
 		global $wpdb, $bp;
 
-		// Mark messages as deleted
-		$wpdb->query( $wpdb->prepare( "UPDATE {$bp->messages->table_name_recipients} SET is_deleted = 1 WHERE thread_id = %d AND user_id = %d", $thread_id, bp_loggedin_user_id() ) );
-
-		// Get the message id in order to pass to the action
-		$message_id = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$bp->messages->table_name_messages} WHERE thread_id = %d", $thread_id ) );
+		$delete_for_user = $wpdb->query( $wpdb->prepare( "UPDATE {$bp->messages->table_name_recipients} SET is_deleted = 1 WHERE thread_id = %d AND user_id = %d", $thread_id, bp_loggedin_user_id() ) );
 
 		// Check to see if any more recipients remain for this message
 		// if not, then delete the message from the database.
@@ -227,120 +133,65 @@ class BP_Messages_Thread {
 			$wpdb->query( $wpdb->prepare( "DELETE FROM {$bp->messages->table_name_recipients} WHERE thread_id = %d", $thread_id ) );
 		}
 
-		do_action( 'messages_thread_deleted_thread', $message_id );
-
 		return true;
 	}
 
-	/**
-	 * Get current message threads for a user.
-	 *
-	 * @since BuddyPress (1.0.0)
-	 *
-	 * @param int    $user_id The user ID.
-	 * @param string $box  The type of mailbox to get. Either 'inbox' or 'sentbox'.
-	 *                     Defaults to 'inbox'.
-	 * @param string $type The type of messages to get. Either 'all' or 'unread'
-	 *                     or 'read'. Defaults to 'all'.
-	 * @param int    $limit The number of messages to get. Defaults to null.
-	 * @param int    $page  The page number to get. Defaults to null.
-	 * @param string $search_terms The search term to use. Defaults to ''.
-	 * @return array|bool Array on success. Boolean false on failure.
-	 */
-	public static function get_current_threads_for_user( $user_id, $box = 'inbox', $type = 'all', $limit = null, $page = null, $search_terms = '' ) {
+	function get_current_threads_for_user( $user_id, $box = 'inbox', $type = 'all', $limit = null, $page = null, $search_terms = '' ) {
 		global $wpdb, $bp;
 
-		$user_id_sql = $pag_sql = $type_sql = $search_sql = '';
-
-		if ( $limit && $page ) {
+		$pag_sql = $type_sql = $search_sql = '';
+		if ( $limit && $page )
 			$pag_sql = $wpdb->prepare( " LIMIT %d, %d", intval( ( $page - 1 ) * $limit), intval( $limit ) );
-		}
 
-		if ( $type == 'unread' ) {
+		if ( $type == 'unread' )
 			$type_sql = " AND r.unread_count != 0 ";
-		} elseif ( $type == 'read' ) {
+		elseif ( $type == 'read' )
 			$type_sql = " AND r.unread_count = 0 ";
-		}
 
-		if ( ! empty( $search_terms ) ) {
-			$search_terms_like = '%' . bp_esc_like( $search_terms ) . '%';
-			$search_sql        = $wpdb->prepare( "AND ( subject LIKE %s OR message LIKE %s )", $search_terms_like, $search_terms_like );
+		if ( !empty( $search_terms ) ) {
+			$search_terms = like_escape( esc_sql( $search_terms ) );
+			$search_sql   = "AND ( subject LIKE '%%$search_terms%%' OR message LIKE '%%$search_terms%%' )";
 		}
 
 		if ( 'sentbox' == $box ) {
-			$user_id_sql = $wpdb->prepare( 'm.sender_id = %d', $user_id );
-			$thread_ids  = $wpdb->get_results( "SELECT m.thread_id, MAX(m.date_sent) AS date_sent FROM {$bp->messages->table_name_recipients} r, {$bp->messages->table_name_messages} m WHERE m.thread_id = r.thread_id AND m.sender_id = r.user_id AND {$user_id_sql} AND r.is_deleted = 0 {$search_sql} GROUP BY m.thread_id ORDER BY date_sent DESC {$pag_sql}" );
-			$total_threads = $wpdb->get_var( "SELECT COUNT( DISTINCT m.thread_id ) FROM {$bp->messages->table_name_recipients} r, {$bp->messages->table_name_messages} m WHERE m.thread_id = r.thread_id AND m.sender_id = r.user_id AND {$user_id_sql} AND r.is_deleted = 0 {$search_sql} " );
+			$thread_ids    = $wpdb->get_results( $wpdb->prepare( "SELECT m.thread_id, MAX(m.date_sent) AS date_sent FROM {$bp->messages->table_name_recipients} r, {$bp->messages->table_name_messages} m WHERE m.thread_id = r.thread_id AND m.sender_id = r.user_id AND m.sender_id = %d AND r.is_deleted = 0 {$search_sql} GROUP BY m.thread_id ORDER BY date_sent DESC {$pag_sql}", $user_id ) );
+			$total_threads = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT( DISTINCT m.thread_id ) FROM {$bp->messages->table_name_recipients} r, {$bp->messages->table_name_messages} m WHERE m.thread_id = r.thread_id AND m.sender_id = r.user_id AND m.sender_id = %d AND r.is_deleted = 0 {$search_sql} ", $user_id ) );
 		} else {
-			$user_id_sql = $wpdb->prepare( 'r.user_id = %d', $user_id );
-			$thread_ids = $wpdb->get_results( "SELECT m.thread_id, MAX(m.date_sent) AS date_sent FROM {$bp->messages->table_name_recipients} r, {$bp->messages->table_name_messages} m WHERE m.thread_id = r.thread_id AND r.is_deleted = 0 AND {$user_id_sql} AND r.sender_only = 0 {$type_sql} {$search_sql} GROUP BY m.thread_id ORDER BY date_sent DESC {$pag_sql}" );
-			$total_threads = $wpdb->get_var( "SELECT COUNT( DISTINCT m.thread_id ) FROM {$bp->messages->table_name_recipients} r, {$bp->messages->table_name_messages} m WHERE m.thread_id = r.thread_id AND r.is_deleted = 0 AND {$user_id_sql} AND r.sender_only = 0 {$type_sql} {$search_sql}" );
+			$thread_ids = $wpdb->get_results( $wpdb->prepare( "SELECT m.thread_id, MAX(m.date_sent) AS date_sent FROM {$bp->messages->table_name_recipients} r, {$bp->messages->table_name_messages} m WHERE m.thread_id = r.thread_id AND r.is_deleted = 0 AND r.user_id = %d AND r.sender_only = 0 {$type_sql} {$search_sql} GROUP BY m.thread_id ORDER BY date_sent DESC {$pag_sql}", $user_id ) );
+			$total_threads = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT( DISTINCT m.thread_id ) FROM {$bp->messages->table_name_recipients} r, {$bp->messages->table_name_messages} m WHERE m.thread_id = r.thread_id AND r.is_deleted = 0 AND r.user_id = %d AND r.sender_only = 0 {$type_sql} {$search_sql} ", $user_id ) );
 		}
 
-		if ( empty( $thread_ids ) ) {
+		if ( empty( $thread_ids ) )
 			return false;
-		}
 
 		// Sort threads by date_sent
-		foreach( (array) $thread_ids as $thread ) {
+		foreach( (array) $thread_ids as $thread )
 			$sorted_threads[$thread->thread_id] = strtotime( $thread->date_sent );
-		}
 
 		arsort( $sorted_threads );
 
 		$threads = false;
-		foreach ( (array) $sorted_threads as $thread_id => $date_sent ) {
+		foreach ( (array) $sorted_threads as $thread_id => $date_sent )
 			$threads[] = new BP_Messages_Thread( $thread_id );
-		}
 
 		return array( 'threads' => &$threads, 'total' => (int) $total_threads );
 	}
 
-	/**
-	 * Mark a thread as read.
-	 *
-	 * @since BuddyPress (1.0.0)
-	 *
-	 * @param int $thread_id The message thread ID.
-	 */
-	public static function mark_as_read( $thread_id ) {
+	function mark_as_read( $thread_id ) {
 		global $wpdb, $bp;
 
 		$sql = $wpdb->prepare( "UPDATE {$bp->messages->table_name_recipients} SET unread_count = 0 WHERE user_id = %d AND thread_id = %d", bp_loggedin_user_id(), $thread_id );
 		$wpdb->query($sql);
-
-		wp_cache_delete( bp_loggedin_user_id(), 'bp_messages_unread_count' );
 	}
 
-	/**
-	 * Mark a thread as unread.
-	 *
-	 * @since BuddyPress (1.0.0)
-	 *
-	 * @param int $thread_id The message thread ID.
-	 */
-	public static function mark_as_unread( $thread_id ) {
+	function mark_as_unread( $thread_id ) {
 		global $wpdb, $bp;
 
 		$sql = $wpdb->prepare( "UPDATE {$bp->messages->table_name_recipients} SET unread_count = 1 WHERE user_id = %d AND thread_id = %d", bp_loggedin_user_id(), $thread_id );
 		$wpdb->query($sql);
-
-		wp_cache_delete( bp_loggedin_user_id(), 'bp_messages_unread_count' );
 	}
 
-	/**
-	 * Returns the total number of message threads for a user.
-	 *
-	 * @since BuddyPress (1.0.0)
-	 *
-	 * @param int    $user_id The user ID.
-	 * @param string $box  The type of mailbox to get. Either 'inbox' or 'sentbox'.
-	 *                     Defaults to 'inbox'.
-	 * @param string $type The type of messages to get. Either 'all' or 'unread'
-	 *                     or 'read'. Defaults to 'all'.
-	 * @return int
-	 */
-	public static function get_total_threads_for_user( $user_id, $box = 'inbox', $type = 'all' ) {
+	function get_total_threads_for_user( $user_id, $box = 'inbox', $type = 'all' ) {
 		global $wpdb, $bp;
 
 		$exclude_sender = '';
@@ -355,123 +206,57 @@ class BP_Messages_Thread {
 		return (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(thread_id) FROM {$bp->messages->table_name_recipients} WHERE user_id = %d AND is_deleted = 0{$exclude_sender} {$type_sql}", $user_id ) );
 	}
 
-	/**
-	 * Determine if the logged-in user is a sender of any message in a thread.
-	 *
-	 * @since BuddyPress (1.0.0)
-	 *
-	 * @param int $thread_id The message thread ID.
-	 * @param bool
-	 */
-	public static function user_is_sender( $thread_id ) {
+	function user_is_sender( $thread_id ) {
 		global $wpdb, $bp;
 
 		$sender_ids = $wpdb->get_col( $wpdb->prepare( "SELECT sender_id FROM {$bp->messages->table_name_messages} WHERE thread_id = %d", $thread_id ) );
 
-		if ( ! $sender_ids ) {
+		if ( !$sender_ids )
 			return false;
-		}
 
 		return in_array( bp_loggedin_user_id(), $sender_ids );
 	}
 
-	/**
-	 * Returns the userlink of the last sender in a message thread.
-	 *
-	 * @since BuddyPress (1.0.0)
-	 *
-	 * @param int $thread_id The message thread ID.
-	 * @return string|bool The user link on success. Boolean false on failure.
-	 */
-	public static function get_last_sender( $thread_id ) {
+	function get_last_sender( $thread_id ) {
 		global $wpdb, $bp;
 
-		if ( ! $sender_id = $wpdb->get_var( $wpdb->prepare( "SELECT sender_id FROM {$bp->messages->table_name_messages} WHERE thread_id = %d GROUP BY sender_id ORDER BY date_sent LIMIT 1", $thread_id ) ) ) {
+		if ( !$sender_id = $wpdb->get_var( $wpdb->prepare( "SELECT sender_id FROM {$bp->messages->table_name_messages} WHERE thread_id = %d GROUP BY sender_id ORDER BY date_sent LIMIT 1", $thread_id ) ) )
 			return false;
-		}
 
 		return bp_core_get_userlink( $sender_id, true );
 	}
 
-	/**
-	 * Gets the unread message count for a user.
-	 *
-	 * @since BuddyPress (1.0.0)
-	 *
-	 * @param int $user_id The user ID.
-	 * @return int
-	 */
-	public static function get_inbox_count( $user_id = 0 ) {
-		global $wpdb, $bp;
-
-		if ( empty( $user_id ) ) {
-			$user_id = bp_loggedin_user_id();
-		}
-
-		$unread_count = wp_cache_get( $user_id, 'bp_messages_unread_count' );
-
-		if ( false === $unread_count ) {
-			$unread_count = (int) $wpdb->get_var( $wpdb->prepare( "SELECT SUM(unread_count) FROM {$bp->messages->table_name_recipients} WHERE user_id = %d AND is_deleted = 0 AND sender_only = 0", $user_id ) );
-
-			wp_cache_set( $user_id, $unread_count, 'bp_messages_unread_count' );
-		}
-
-		return (int) $unread_count;
-	}
-
-	/**
-	 * Checks whether a user is a part of a message thread discussion.
-	 *
-	 * @since BuddyPress (1.0.0)
-	 *
-	 * @param int $thread_id The message thread ID.
-	 * @param int $user_id The user ID.
-	 * @return int The message ID on success.
-	 */
-	public static function check_access( $thread_id, $user_id = 0 ) {
+	function get_inbox_count( $user_id = 0 ) {
 		global $wpdb, $bp;
 
 		if ( empty( $user_id ) )
 			$user_id = bp_loggedin_user_id();
 
-		return $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$bp->messages->table_name_recipients} WHERE thread_id = %d AND is_deleted = 0 AND user_id = %d", $thread_id, $user_id ) );
+		$sql = $wpdb->prepare( "SELECT SUM(unread_count) FROM {$bp->messages->table_name_recipients} WHERE user_id = %d AND is_deleted = 0 AND sender_only = 0", $user_id );
+		$unread_count = $wpdb->get_var( $sql );
+
+		if ( empty( $unread_count ) || is_wp_error( $unread_count ) )
+			return 0;
+
+		return (int) $unread_count;
 	}
 
-	/**
-	 * Checks whether a message thread exists.
-	 *
-	 * @since BuddyPress (1.0.0)
-	 *
-	 * @param int $thread_id The message thread ID.
-	 * @return int The message thread ID on success.
-	 */
-	public static function is_valid( $thread_id = 0 ) {
-		global $wpdb;
+	function check_access( $thread_id, $user_id = 0 ) {
+		global $wpdb, $bp;
 
-		// Bail if no thread ID is passed
-		if ( empty( $thread_id ) ) {
-			return false;
-		}
+		if ( empty( $user_id ) )
+			$user_id = bp_loggedin_user_id();
 
-		$bp = buddypress();
+		return $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$bp->messages->table_name_recipients} WHERE thread_id = %d AND user_id = %d", $thread_id, $user_id ) );
+	}
+
+	function is_valid( $thread_id ) {
+		global $wpdb, $bp;
 
 		return $wpdb->get_var( $wpdb->prepare( "SELECT thread_id FROM {$bp->messages->table_name_messages} WHERE thread_id = %d LIMIT 1", $thread_id ) );
 	}
 
-	/**
-	 * Returns a string containing all the message recipient userlinks.
-	 *
-	 * String is comma-delimited.
-	 *
-	 * If a message thread has more than four users, the returned string is simply
-	 * "X Recipients" where "X" is the number of recipients in the message thread.
-	 *
-	 * @since BuddyPress (1.0.0)
-	 *
-	 * @param object $recipients Object containing the message recipients.
-	 * @return string
-	 */
-	public static function get_recipient_links( $recipients ) {
+	function get_recipient_links( $recipients ) {
 		if ( count( $recipients ) >= 5 )
 			return sprintf( __( '%s Recipients', 'buddypress' ), number_format_i18n( count( $recipients ) ) );
 
@@ -490,15 +275,9 @@ class BP_Messages_Thread {
 		return implode( ', ', (array) $recipient_links );
 	}
 
-	/**
-	 * Upgrade method for the older BP message thread DB table.
-	 *
-	 * @since BuddyPress (1.2.0)
-	 *
-	 * @todo We should remove this.  No one is going to upgrade from v1.1, right?
-	 * @return bool
-	 */
-	public static function update_tables() {
+	// Update Functions
+
+	function update_tables() {
 		global $wpdb, $bp;
 
 		$bp_prefix = bp_core_get_table_prefix();
@@ -506,9 +285,8 @@ class BP_Messages_Thread {
 		$threads   = $wpdb->get_results( "SELECT * FROM {$bp_prefix}bp_messages_threads" );
 
 		// Nothing to update, just return true to remove the table
-		if ( empty( $threads ) ) {
+		if ( empty( $threads ) )
 			return true;
-		}
 
 		foreach( (array) $threads as $thread ) {
 			$message_ids = maybe_unserialize( $thread->message_ids );
@@ -517,92 +295,37 @@ class BP_Messages_Thread {
 				$message_ids = implode( ',', $message_ids );
 
 				// Add the thread_id to the messages table
-				if ( ! $wpdb->query( $wpdb->prepare( "UPDATE {$bp->messages->table_name_messages} SET thread_id = %d WHERE id IN ({$message_ids})", $thread->id ) ) )
+				if ( !$wpdb->query( $wpdb->prepare( "UPDATE {$bp->messages->table_name_messages} SET thread_id = %d WHERE id IN ({$message_ids})", $thread->id ) ) )
 					$errors = true;
 			}
 		}
 
-		if ( $errors ) {
+		if ( $errors )
 			return false;
-		}
 
 		return true;
 	}
 }
 
-/**
- * Single message class.
- */
 class BP_Messages_Message {
-	/**
-	 * ID of the message.
-	 *
-	 * @var int
-	 */
-	public $id;
+	var $id;
+	var $thread_id;
+	var $sender_id;
+	var $subject;
+	var $message;
+	var $date_sent;
 
-	/**
-	 * ID of the message thread.
-	 *
-	 * @var int
-	 */
-	public $thread_id;
+	var $recipients = false;
 
-	/**
-	 * ID of the sender.
-	 *
-	 * @var int
-	 */
-	public $sender_id;
-
-	/**
-	 * Subject line of the message.
-	 *
-	 * @var string
-	 */
-	public $subject;
-
-	/**
-	 * Content of the message.
-	 *
-	 * @var string
-	 */
-	public $message;
-
-	/**
-	 * Date the message was sent.
-	 *
-	 * @var string
-	 */
-	public $date_sent;
-
-	/**
-	 * Message recipients.
-	 *
-	 * @var bool|array
-	 */
-	public $recipients = false;
-
-	/**
-	 * Constructor.
-	 *
-	 * @param int $id Optional. ID of the message.
-	 */
-	public function __construct( $id = null ) {
+	function __construct( $id = null ) {
 		$this->date_sent = bp_core_current_time();
 		$this->sender_id = bp_loggedin_user_id();
 
-		if ( !empty( $id ) ) {
+		if ( !empty( $id ) )
 			$this->populate( $id );
-		}
 	}
 
-	/**
-	 * Set up data related to a specific message object.
-	 *
-	 * @param int $id ID of the message.
-	 */
-	public function populate( $id ) {
+	function populate( $id ) {
 		global $wpdb, $bp;
 
 		if ( $message = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$bp->messages->table_name_messages} WHERE id = %d", $id ) ) ) {
@@ -615,13 +338,7 @@ class BP_Messages_Message {
 		}
 	}
 
-	/**
-	 * Send a message.
-	 *
-	 * @return int|bool ID of the newly created message on success, false
-	 *         on failure.
-	 */
-	public function send() {
+	function send() {
 		global $wpdb, $bp;
 
 		$this->sender_id = apply_filters( 'messages_message_sender_id_before_save', $this->sender_id, $this->id );
@@ -674,25 +391,15 @@ class BP_Messages_Message {
 		return $this->id;
 	}
 
-	/**
-	 * Get a list of recipients for a message.
-	 *
-	 * @return array
-	 */
-	public function get_recipients() {
+	function get_recipients() {
 		global $bp, $wpdb;
+
 		return $wpdb->get_results( $wpdb->prepare( "SELECT user_id FROM {$bp->messages->table_name_recipients} WHERE thread_id = %d", $this->thread_id ) );
 	}
 
-	/** Static Functions **************************************************/
+	// Static Functions
 
-	/**
-	 * Get list of recipient IDs from their usernames.
-	 *
-	 * @param array $recipient_usernames Usernames of recipients.
-	 * @return array
-	 */
-	public static function get_recipient_ids( $recipient_usernames ) {
+	function get_recipient_ids( $recipient_usernames ) {
 		if ( !$recipient_usernames )
 			return false;
 
@@ -707,105 +414,38 @@ class BP_Messages_Message {
 		return $recipient_ids;
 	}
 
-	/**
-	 * Get the ID of the message last sent by the logged-in user for a given thread.
-	 *
-	 * @param int $thread_id ID of the thread.
-	 * @return int|null ID of the message if found, otherwise null.
-	 */
-	public static function get_last_sent_for_user( $thread_id ) {
+	function get_last_sent_for_user( $thread_id ) {
 		global $wpdb, $bp;
+
 		return $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$bp->messages->table_name_messages} WHERE sender_id = %d AND thread_id = %d ORDER BY date_sent DESC LIMIT 1", bp_loggedin_user_id(), $thread_id ) );
 	}
 
-	/**
-	 * Check whether a user is the sender of a message.
-	 *
-	 * @param int $user_id ID of the user.
-	 * @param int $message_id ID of the message.
-	 * @return int|null Returns the ID of the message if the user is the
-	 *         sender, otherwise null.
-	 */
-	public static function is_user_sender( $user_id, $message_id ) {
+	function is_user_sender( $user_id, $message_id ) {
 		global $wpdb, $bp;
 		return $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$bp->messages->table_name_messages} WHERE sender_id = %d AND id = %d", $user_id, $message_id ) );
 	}
 
-	/**
-	 * Get the ID of the sender of a message.
-	 *
-	 * @param int $message_id ID of the message.
-	 * @return int|null The ID of the sender if found, otherwise null.
-	 */
-	public static function get_message_sender( $message_id ) {
+	function get_message_sender( $message_id ) {
 		global $wpdb, $bp;
 		return $wpdb->get_var( $wpdb->prepare( "SELECT sender_id FROM {$bp->messages->table_name_messages} WHERE id = %d", $message_id ) );
 	}
 }
 
-/**
- * BuddyPress Notices class.
- *
- * Use this class to create, activate, deactivate or delete notices.
- *
- * @since BuddyPress (1.0.0)
- */
 class BP_Messages_Notice {
-	/**
-	 * The notice ID.
-	 *
-	 * @var int
-	 */
-	public $id = null;
+	var $id = null;
+	var $subject;
+	var $message;
+	var $date_sent;
+	var $is_active;
 
-	/**
-	 * The subject line for the notice.
-	 *
-	 * @var string
-	 */
-	public $subject;
-
-	/**
-	 * The content of the notice.
-	 *
-	 * @var string
-	 */
-	public $message;
-
-	/**
-	 * The date the notice was created.
-	 *
-	 * @var string
-	 */
-	public $date_sent;
-
-	/**
-	 * Whether the notice is active or not.
-	 *
-	 * @var int
-	 */
-	public $is_active;
-
-	/**
-	 * Constructor.
-	 *
-	 * @since BuddyPress (1.0.0)
-	 */
-	public function __construct( $id = null ) {
+	function __construct( $id = null ) {
 		if ( $id ) {
 			$this->id = $id;
-			$this->populate();
+			$this->populate($id);
 		}
 	}
 
-	/**
-	 * Populate method.
-	 *
-	 * Runs during constructor.
-	 *
-	 * @since BuddyPress (1.0.0)
-	 */
-	public function populate() {
+	function populate() {
 		global $wpdb, $bp;
 
 		$notice = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$bp->messages->table_name_notices} WHERE id = %d", $this->id ) );
@@ -818,14 +458,7 @@ class BP_Messages_Notice {
 		}
 	}
 
-	/**
-	 * Saves a notice.
-	 *
-	 * @since BuddyPress (1.0.0)
-	 *
-	 * @return bool
-	 */
-	public function save() {
+	function save() {
 		global $wpdb, $bp;
 
 		$this->subject = apply_filters( 'messages_notice_subject_before_save', $this->subject, $this->id );
@@ -833,102 +466,77 @@ class BP_Messages_Notice {
 
 		do_action_ref_array( 'messages_notice_before_save', array( &$this ) );
 
-		if ( empty( $this->id ) ) {
+		if ( empty( $this->id ) )
 			$sql = $wpdb->prepare( "INSERT INTO {$bp->messages->table_name_notices} (subject, message, date_sent, is_active) VALUES (%s, %s, %s, %d)", $this->subject, $this->message, $this->date_sent, $this->is_active );
-		} else {
+		else
 			$sql = $wpdb->prepare( "UPDATE {$bp->messages->table_name_notices} SET subject = %s, message = %s, is_active = %d WHERE id = %d", $this->subject, $this->message, $this->is_active, $this->id );
-		}
 
-		if ( ! $wpdb->query( $sql ) ) {
+		if ( !$wpdb->query( $sql ) )
 			return false;
-		}
 
-		if ( ! $id = $this->id ) {
+		if ( !$id = $this->id )
 			$id = $wpdb->insert_id;
-		}
 
 		// Now deactivate all notices apart from the new one.
 		$wpdb->query( $wpdb->prepare( "UPDATE {$bp->messages->table_name_notices} SET is_active = 0 WHERE id != %d", $id ) );
 
-		bp_update_user_last_activity( bp_loggedin_user_id(), bp_core_current_time() );
+		bp_update_user_meta( bp_loggedin_user_id(), 'last_activity', bp_core_current_time() );
 
 		do_action_ref_array( 'messages_notice_after_save', array( &$this ) );
 
 		return true;
 	}
 
-	/**
-	 * Activates a notice.
-	 *
-	 * @since BuddyPress (1.0.0)
-	 *
-	 * @return bool
-	 */
-	public function activate() {
+	function activate() {
 		$this->is_active = 1;
-		return (bool) $this->save();
-	}
-
-	/**
-	 * Deactivates a notice.
-	 *
-	 * @since BuddyPress (1.0.0)
-	 *
-	 * @return bool
-	 */
-	public function deactivate() {
-		$this->is_active = 0;
-		return (bool) $this->save();
-	}
-
-	/**
-	 * Deletes a notice.
-	 *
-	 * @since BuddyPress (1.0.0)
-	 *
-	 * @return bool
-	 */
-	public function delete() {
-		global $wpdb, $bp;
-
-		do_action( 'messages_notice_before_delete', $this );
-
-		$sql = $wpdb->prepare( "DELETE FROM {$bp->messages->table_name_notices} WHERE id = %d", $this->id );
-
-		if ( ! $wpdb->query( $sql ) ) {
+		if ( !$this->save() )
 			return false;
-		}
 
 		return true;
 	}
 
-	/** Static Methods ********************************************************/
+	function deactivate() {
+		$this->is_active = 0;
+		if ( !$this->save() )
+			return false;
+
+		return true;
+	}
+
+	function delete() {
+		global $wpdb, $bp;
+
+		$sql = $wpdb->prepare( "DELETE FROM {$bp->messages->table_name_notices} WHERE id = %d", $this->id );
+
+		if ( !$wpdb->query( $sql ) )
+			return false;
+
+		return true;
+	}
+
+	// Static Functions
 
 	/**
-	 * Pulls up a list of notices.
+	 * Pulls up a list of notices
 	 *
 	 * To get all notices, pass a value of -1 to pag_num
 	 *
-	 * @since BuddyPress (1.0.0)
-	 *
-	 * @param array $data {
-	 *     Array of parameters.
-	 *     @type int $pag_num Number of notices per page. Defaults to 20.
-	 *     @type int $pag_page The page number.  Defaults to 1.
-	 * }
-	 * @return array
+	 * @param array $args See $defaults for explanation of accepted arguments
+	 * @return array $notices
 	 */
-	public static function get_notices( $args = array() ) {
+	function get_notices( $args = array() ) {
 		global $wpdb, $bp;
 
-		$r = wp_parse_args( $args, array(
+		$defaults = array(
 			'pag_num'  => 20, // Number of notices per page
 			'pag_page' => 1   // Page number
-		) );
+		);
+		$r = wp_parse_args( $args, $defaults );
+		extract( $r );
 
 		$limit_sql = '';
-		if ( (int) $r['pag_num'] >= 0 ) {
-			$limit_sql = $wpdb->prepare( "LIMIT %d, %d", (int) ( ( $r['pag_page'] - 1 ) * $r['pag_num'] ), (int) $r['pag_num'] );
+		if ( (int) $pag_num >= 0 ) {
+			$limit_sql = $wpdb->prepare( "LIMIT %d, %d", (int) ( ( $pag_page - 1 ) * $pag_num ), (int) $pag_num );
 		}
 
 		$notices = $wpdb->get_results( "SELECT * FROM {$bp->messages->table_name_notices} ORDER BY date_sent DESC {$limit_sql}" );
@@ -936,14 +544,7 @@ class BP_Messages_Notice {
 		return $notices;
 	}
 
-	/**
-	 * Returns the total number of recorded notices.
-	 *
-	 * @since BuddyPress (1.0.0)
-	 *
-	 * @return int
-	 */
-	public static function get_total_notice_count() {
+	function get_total_notice_count() {
 		global $wpdb, $bp;
 
 		$notice_count = $wpdb->get_var( "SELECT COUNT(id) FROM " . $bp->messages->table_name_notices );
@@ -951,25 +552,11 @@ class BP_Messages_Notice {
 		return $notice_count;
 	}
 
-	/**
-	 * Returns the active notice that should be displayed on the frontend.
-	 *
-	 * @since BuddyPress (1.0.0)
-	 *
-	 * @return object The BP_Messages_Notice object
-	 */
-	public static function get_active() {
-		$notice = wp_cache_get( 'active_notice', 'bp_messages' );
+	function get_active() {
+		global $wpdb, $bp;
 
-		if ( false === $notice ) {
-			global $wpdb, $bp;
+		$notice_id = $wpdb->get_var( "SELECT id FROM {$bp->messages->table_name_notices} WHERE is_active = 1" );
 
-			$notice_id = $wpdb->get_var( "SELECT id FROM {$bp->messages->table_name_notices} WHERE is_active = 1" );
-			$notice    = new BP_Messages_Notice( $notice_id );
-
-			wp_cache_set( 'active_notice', $notice, 'bp_messages' );
-		}
-
-		return $notice;
+		return new BP_Messages_Notice( $notice_id );
 	}
 }

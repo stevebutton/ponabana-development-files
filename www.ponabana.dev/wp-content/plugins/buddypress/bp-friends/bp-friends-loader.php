@@ -2,10 +2,10 @@
 /**
  * BuddyPress Friends Streams Loader
  *
- * The friends component is for users to create relationships with each other.
+ * The friends component is for users to create relationships with each other
  *
  * @package BuddyPress
- * @subpackage Friends
+ * @subpackage Friends Core
  */
 
 // Exit if accessed directly
@@ -14,31 +14,24 @@ if ( !defined( 'ABSPATH' ) ) exit;
 class BP_Friends_Component extends BP_Component {
 
 	/**
-	 * Start the friends component creation process.
+	 * Start the friends component creation process
 	 *
-	 * @since BuddyPress (1.5.0)
+	 * @since BuddyPress (1.5)
 	 */
-	public function __construct() {
+	function __construct() {
 		parent::start(
 			'friends',
-			_x( 'Friend Connections', 'Friends screen page <title>', 'buddypress' ),
-			buddypress()->plugin_dir,
-			array(
-				'adminbar_myaccount_order' => 60
-			)
+			__( 'Friend Connections', 'buddypress' ),
+			BP_PLUGIN_DIR
 		);
 	}
 
 	/**
-	 * Include bp-friends files.
-	 *
-	 * @see BP_Component::includes() for description of parameters.
-	 *
-	 * @param array $includes See {@link BP_Component::includes()}.
+	 * Include files
 	 */
 	public function includes( $includes = array() ) {
+		// Files to include
 		$includes = array(
-			'cache',
 			'actions',
 			'screens',
 			'filters',
@@ -47,32 +40,24 @@ class BP_Friends_Component extends BP_Component {
 			'template',
 			'functions',
 			'notifications',
-			'widgets',
 		);
 
 		parent::includes( $includes );
 	}
 
 	/**
-	 * Set up bp-friends global settings.
+	 * Setup globals
 	 *
 	 * The BP_FRIENDS_SLUG constant is deprecated, and only used here for
 	 * backwards compatibility.
 	 *
-	 * @since BuddyPress (1.5.0)
-	 *
-	 * @see BP_Component::setup_globals() for description of parameters.
-	 *
-	 * @param array $args See {@link BP_Component::setup_globals()}.
+	 * @since BuddyPress (1.5)
+	 * @global BuddyPress $bp The one true BuddyPress instance
 	 */
 	public function setup_globals( $args = array() ) {
-		$bp = buddypress();
+		global $bp;
 
-		// Deprecated. Do not use.
-		// Defined conditionally to support unit tests.
-		if ( ! defined( 'BP_FRIENDS_DB_VERSION' ) ) {
-			define( 'BP_FRIENDS_DB_VERSION', '1800' );
-		}
+		define ( 'BP_FRIENDS_DB_VERSION', '1800' );
 
 		// Define a slug, if necessary
 		if ( !defined( 'BP_FRIENDS_SLUG' ) )
@@ -86,7 +71,7 @@ class BP_Friends_Component extends BP_Component {
 
 		// All globals for the friends component.
 		// Note that global_tables is included in this array.
-		$args = array(
+		$globals = array(
 			'slug'                  => BP_FRIENDS_SLUG,
 			'has_directory'         => false,
 			'search_string'         => __( 'Search Friends...', 'buddypress' ),
@@ -94,29 +79,22 @@ class BP_Friends_Component extends BP_Component {
 			'global_tables'         => $global_tables
 		);
 
-		parent::setup_globals( $args );
+		parent::setup_globals( $globals );
 	}
 
 	/**
-	 * Set up component navigation.
+	 * Setup BuddyBar navigation
 	 *
-	 * @since BuddyPress (1.5.0)
-	 *
-	 * @see BP_Component::setup_nav() for a description of arguments.
-	 *
-	 * @param array $main_nav Optional. See BP_Component::setup_nav() for
-	 *        description.
-	 * @param array $sub_nav Optional. See BP_Component::setup_nav() for
-	 *        description.
+	 * @global BuddyPress $bp The one true BuddyPress instance
 	 */
 	public function setup_nav( $main_nav = array(), $sub_nav = array() ) {
-		$bp = buddypress();
+		global $bp;
+
+		$sub_nav = array();
 
 		// Add 'Friends' to the main navigation
-		$count    = friends_get_total_friend_count();
-		$class    = ( 0 === $count ) ? 'no-count' : 'count';
 		$main_nav = array(
-			'name'                => sprintf( __( 'Friends <span class="%s">%s</span>', 'buddypress' ), esc_attr( $class ), number_format_i18n( $count ) ),
+			'name'                => sprintf( __( 'Friends <span>%d</span>', 'buddypress' ), friends_get_total_friend_count() ),
 			'slug'                => $this->slug,
 			'position'            => 60,
 			'screen_function'     => 'friends_screen_my_friends',
@@ -137,7 +115,7 @@ class BP_Friends_Component extends BP_Component {
 
 		// Add the subnav items to the friends nav item
 		$sub_nav[] = array(
-			'name'            => _x( 'Friendships', 'Friends screen sub nav', 'buddypress' ),
+			'name'            => __( 'Friendships', 'buddypress' ),
 			'slug'            => 'my-friends',
 			'parent_url'      => $friends_link,
 			'parent_slug'     => bp_get_friends_slug(),
@@ -147,7 +125,7 @@ class BP_Friends_Component extends BP_Component {
 		);
 
 		$sub_nav[] = array(
-			'name'            => _x( 'Requests', 'Friends screen sub nav', 'buddypress' ),
+			'name'            => __( 'Requests',   'buddypress' ),
 			'slug'            => 'requests',
 			'parent_url'      => $friends_link,
 			'parent_slug'     => bp_get_friends_slug(),
@@ -160,17 +138,15 @@ class BP_Friends_Component extends BP_Component {
 	}
 
 	/**
-	 * Set up bp-friends integration with the WordPress admin bar.
+	 * Set up the Toolbar
 	 *
-	 * @since BuddyPress (1.5.0)
-	 *
-	 * @see BP_Component::setup_admin_bar() for a description of arguments.
-	 *
-	 * @param array $wp_admin_nav See BP_Component::setup_admin_bar()
-	 *        for description.
+	 * @global BuddyPress $bp The one true BuddyPress instance
 	 */
 	public function setup_admin_bar( $wp_admin_nav = array() ) {
-		$bp = buddypress();
+		global $bp;
+
+		// Prevent debug notices
+		$wp_admin_nav = array();
 
 		// Menus for logged in user
 		if ( is_user_logged_in() ) {
@@ -182,11 +158,11 @@ class BP_Friends_Component extends BP_Component {
 			// Pending friend requests
 			$count = count( friends_get_friendship_request_user_ids( bp_loggedin_user_id() ) );
 			if ( !empty( $count ) ) {
-				$title   = sprintf( _x( 'Friends <span class="count">%s</span>', 'My Account Friends menu', 'buddypress' ), number_format_i18n( $count ) );
-				$pending = sprintf( _x( 'Pending Requests <span class="count">%s</span>', 'My Account Friends menu sub nav', 'buddypress' ), number_format_i18n( $count ) );
+				$title   = sprintf( __( 'Friends <span class="count">%s</span>',          'buddypress' ), number_format_i18n( $count ) );
+				$pending = sprintf( __( 'Pending Requests <span class="count">%s</span>', 'buddypress' ), number_format_i18n( $count ) );
 			} else {
-				$title   = _x( 'Friends', 'My Account Friends menu', 'buddypress' );
-				$pending = _x( 'No Pending Requests','My Account Friends menu sub nav', 'buddypress' );
+				$title   = __( 'Friends',             'buddypress' );
+				$pending = __( 'No Pending Requests', 'buddypress' );
 			}
 
 			// Add the "My Account" sub menus
@@ -197,11 +173,11 @@ class BP_Friends_Component extends BP_Component {
 				'href'   => trailingslashit( $friends_link )
 			);
 
-			// My Friends
+			// My Groups
 			$wp_admin_nav[] = array(
 				'parent' => 'my-account-' . $this->id,
 				'id'     => 'my-account-' . $this->id . '-friendships',
-				'title'  => _x( 'Friendships', 'My Account Friends menu sub nav', 'buddypress' ),
+				'title'  => __( 'Friendships', 'buddypress' ),
 				'href'   => trailingslashit( $friends_link )
 			);
 
@@ -218,10 +194,12 @@ class BP_Friends_Component extends BP_Component {
 	}
 
 	/**
-	 * Set up the title for pages and <title>.
+	 * Sets up the title for pages and <title>
+	 *
+	 * @global BuddyPress $bp The one true BuddyPress instance
 	 */
-	public function setup_title() {
-		$bp = buddypress();
+	function setup_title() {
+		global $bp;
 
 		// Adjust title
 		if ( bp_is_friends_component() ) {
@@ -241,10 +219,8 @@ class BP_Friends_Component extends BP_Component {
 	}
 }
 
-/**
- * Set up the bp-forums component.
- */
 function bp_setup_friends() {
-	buddypress()->friends = new BP_Friends_Component();
+	global $bp;
+	$bp->friends = new BP_Friends_Component();
 }
 add_action( 'bp_setup_components', 'bp_setup_friends', 6 );

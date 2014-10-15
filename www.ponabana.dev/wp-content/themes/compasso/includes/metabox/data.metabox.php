@@ -3,16 +3,13 @@ $prefix = '_g7_';
 
 $sidebars['sidebar'] = 'Default Sidebar';
 foreach ((array)g7_option('sidebar') as $v) {
-	if (trim($v) == '') {
-		continue;
-	}
 	$sidebars[$v] = $v;
 }
 
-$meta_boxes['layout'] = array(
+$meta_boxes[] = array(
 	'id'           => 'layout_metabox',
 	'title'        => 'Layout Options',
-	'pages'        => array('page', 'post'),
+	'pages'        => array('page'),
 	'templates_ex' => array('page-masonry.php', 'page-categories-masonry.php'),
 	'context'      => 'normal',
 	'priority'     => 'high',
@@ -37,7 +34,7 @@ $meta_boxes['layout'] = array(
 	)
 );
 
-$meta_boxes['list'] = array(
+$meta_boxes[] = array(
 	'id'        => 'list_metabox',
 	'title'     => 'List Options',
 	'pages'     => array('page'),
@@ -60,7 +57,7 @@ $meta_boxes['list'] = array(
 	)
 );
 
-$meta_boxes['grid'] = array(
+$meta_boxes[] = array(
 	'id'        => 'grid_metabox',
 	'title'     => 'Grid Options',
 	'pages'     => array('page'),
@@ -94,7 +91,7 @@ $meta_boxes['grid'] = array(
 	)
 );
 
-$meta_boxes['masonry'] = array(
+$meta_boxes[] = array(
 	'id'        => 'masonry_metabox',
 	'title'     => 'Masonry Options',
 	'pages'     => array('page'),
@@ -127,7 +124,7 @@ $meta_boxes['masonry'] = array(
 	)
 );
 
-$meta_boxes['category'] = array(
+$meta_boxes[] = array(
 	'id'        => 'category_metabox',
 	'title'     => 'Categories',
 	'pages'     => array('page'),
@@ -150,7 +147,7 @@ $meta_boxes['category'] = array(
 	)
 );
 
-$meta_boxes['category2'] = array(
+$meta_boxes[] = array(
 	'id'        => 'category2_metabox',
 	'title'     => 'Categories',
 	'pages'     => array('page'),
@@ -168,7 +165,7 @@ $meta_boxes['category2'] = array(
 );
 
 if (g7_option('enable_seo')) {
-	$meta_boxes['seo'] = array(
+	$meta_boxes[] = array(
 		'id'       => 'seo_metabox',
 		'title'    => 'SEO Options',
 		'pages'    => array('post', 'page'),
@@ -203,7 +200,7 @@ if (g7_option('enable_seo')) {
 }
 
 if (g7_option('enable_ratings')) {
-	$meta_boxes['rating'] = array(
+	$meta_boxes[] = array(
 		'id'       => 'rating_metabox',
 		'title'    => 'Rating',
 		'pages'    => array('post'),
@@ -228,7 +225,7 @@ if (g7_option('enable_ratings')) {
 	);
 }
 
-$meta_boxes['sitemap'] = array(
+$meta_boxes[] = array(
 	'id'        => 'sitemap_metabox',
 	'title'     => 'Sitemap Options',
 	'pages'     => array('page'),
@@ -290,27 +287,6 @@ $meta_boxes['sitemap'] = array(
 			'type' => 'text',
 			'size' => 3,
 			'std'  => 20
-		)
-	)
-);
-
-$meta_boxes['single'] = array(
-	'id'       => 'single_metabox',
-	'title'    => 'Post Options',
-	'pages'    => array('post'),
-	'context'  => 'normal',
-	'priority' => 'high',
-	'fields'   => array(
-		array(
-			'name'    => 'Featured image view',
-			'id'      => $prefix . 'featured_image',
-			'type'    => 'select',
-			'std'     => '1',
-			'options' => array(
-				'1' => 'Show image',
-				'2' => 'Show full height (uncropped) image',
-				'3' => 'Hide image'
-			)
 		)
 	)
 );

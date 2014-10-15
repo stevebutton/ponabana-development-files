@@ -1,7 +1,7 @@
 <?php
 
 /**
- * BuddyPress URI catcher.
+ * BuddyPress URI catcher
  *
  * Functions for parsing the URI and determining which BuddyPress template file
  * to use on-screen.
@@ -14,13 +14,12 @@
 if ( !defined( 'ABSPATH' ) ) exit;
 
 /**
- * Analyze the URI and break it down into BuddyPress-usable chunks.
- *
- * BuddyPress can use complete custom friendly URIs without the user having to
- * add new rewrite rules. Custom components are able to use their own custom
+ * Analyzes the URI structure and breaks it down into parts for use in code.
+ * BuddyPress can use complete custom friendly URI's without the user having to
+ * add new re-write rules. Custom components are able to use their own custom
  * URI structures with very little work.
  *
- * The URIs are broken down as follows:
+ * The URI's are broken down as follows:
  *   - http:// domain.com / members / andy / [current_component] / [current_action] / [action_variables] / [action_variables] / ...
  *   - OUTSIDE ROOT: http:// domain.com / sites / buddypress / members / andy / [current_component] / [current_action] / [action_variables] / [action_variables] / ...
  *
@@ -30,7 +29,8 @@ if ( !defined( 'ABSPATH' ) ) exit;
  *    - $bp->current_action: string 'edit'
  *    - $bp->action_variables: array ['group', 5]
  *
- * @since BuddyPress (1.0.0)
+ * @package BuddyPress Core
+ * @since BuddyPress (1.0)
  */
 function bp_core_set_uri_globals() {
 	global $bp, $current_blog, $wp_rewrite;
@@ -210,6 +210,10 @@ function bp_core_set_uri_globals() {
 			$matches[]  = 1;
 			$match      = $bp->pages->members;
 			$match->key = 'members';
+
+			// Without the 'members' URL chunk, WordPress won't know which page to load
+			// This filter intercepts the WP query and tells it to load the members page
+			add_filter( 'request', create_function( '$query_args', '$query_args["pagename"] = "' . $match->name . '"; return $query_args;' ) );
 		}
 	}
 
@@ -312,11 +316,10 @@ function bp_core_set_uri_globals() {
 }
 
 /**
- * Are root profiles enabled and allowed?
+ * Are root profiles enabled and allowed
  *
- * @since BuddyPress (1.6.0)
- *
- * @return bool True if yes, false if no.
+ * @since BuddyPress (1.6)
+ * @return bool True if yes, false if no
  */
 function bp_core_enable_root_profiles() {
 
@@ -336,44 +339,35 @@ function bp_core_enable_root_profiles() {
  * Loads:
  *   wp-content/themes/[activated_theme]/members/index.php
  *
- * @param array $templates Array of templates to attempt to load.
- * @return bool|null Returns false on failure.
+ * @package BuddyPress Core
+ * @param string $username Username to check.
+ * @return int|bool The user ID of the matched user, or false.
  */
 function bp_core_load_template( $templates ) {
-	global $wp_query;
+	global $post, $bp, $wp_query, $wpdb;
 
-	// check if BP page belongs to, or is a child of, a BP directory page
-	$page_id = false;
-	foreach ( (array) buddypress()->pages as $page ) {
-		if ( $page->name == buddypress()->unfiltered_uri[buddypress()->unfiltered_uri_offset] ) {
-			$page_id = $page->id;
-			break;
+	// Determine if the root object WP page exists for this request
+	// note: get_page_by_path() breaks non-root pages
+	if ( !empty( $bp->unfiltered_uri_offset ) ) {
+		if ( !$page_exists = $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE post_name = %s", $bp->unfiltered_uri[$bp->unfiltered_uri_offset] ) ) ) {
+			return false;
 		}
 	}
 
-	// Set up reset post args
-	$reset_post_args = array(
-		'is_404'      => true,
-		'post_status' => 'publish',
-	);
-
-	// BP page exists - fill in the $wp_query->post object
-	//
-	// bp_theme_compat_reset_post() looks at the $wp_query->post object to fill in
-	// the post globals
-	if ( ! empty( $page_id ) ) {
-		$wp_query->post = get_post( $page_id );
-		$reset_post_args['ID'] = $page_id;
-	} else {
-		$reset_post_args['ID'] = 0;
+	// Set the root object as the current wp_query-ied item
+	$object_id = 0;
+	foreach ( (array) $bp->pages as $page ) {
+		if ( $page->name == $bp->unfiltered_uri[$bp->unfiltered_uri_offset] ) {
+			$object_id = $page->id;
+		}
 	}
 
-	// Reset the post
-	bp_theme_compat_reset_post( $reset_post_args );
-
-	// Set theme compat to false since the reset post function automatically sets
-	// theme compat to true
-	bp_set_theme_compat_active( false );
+	// Make the queried/post object an actual valid page
+	if ( !empty( $object_id ) ) {
+		$wp_query->queried_object    = &get_post( $object_id );
+		$wp_query->queried_object_id = $object_id;
+		$post                        = $wp_query->queried_object;
+	}
 
 	// Fetch each template and add the php suffix
 	$filtered_templates = array();
@@ -381,24 +375,15 @@ function bp_core_load_template( $templates ) {
 		$filtered_templates[] = $template . '.php';
 	}
 
-	// Only perform template lookup for bp-default themes
-	if ( ! bp_use_theme_compat_with_current_theme() ) {
-		$template = locate_template( (array) $filtered_templates, false );
-
-	// Theme compat doesn't require a template lookup
-	} else {
-		$template = '';
-	}
-
 	// Filter the template locations so that plugins can alter where they are located
-	$located_template = apply_filters( 'bp_located_template', $template, $filtered_templates );
+	$located_template = apply_filters( 'bp_located_template', locate_template( (array) $filtered_templates, false ), $filtered_templates );
 	if ( !empty( $located_template ) ) {
 
 		// Template was located, lets set this as a valid page and not a 404.
 		status_header( 200 );
 		$wp_query->is_page     = true;
 		$wp_query->is_singular = true;
-		$wp_query->is_404      = false;
+		$wp_query->is_404      = false;			
 
 		do_action( 'bp_core_pre_load_template', $located_template );
 
@@ -419,7 +404,7 @@ function bp_core_load_template( $templates ) {
 			status_header( 200 );
 			$wp_query->is_page     = true;
 			$wp_query->is_singular = true;
-			$wp_query->is_404      = false;
+			$wp_query->is_404      = false;			
 		}
 
 		do_action( 'bp_setup_theme_compat' );
@@ -427,7 +412,11 @@ function bp_core_load_template( $templates ) {
 }
 
 /**
- * Redirect away from /profile URIs if XProfile is not enabled.
+ * bp_core_catch_profile_uri()
+ *
+ * If the extended profiles component is not installed we still need
+ * to catch the /profile URI's and display whatever we have installed.
+ *
  */
 function bp_core_catch_profile_uri() {
 	if ( !bp_is_active( 'xprofile' ) ) {
@@ -436,9 +425,10 @@ function bp_core_catch_profile_uri() {
 }
 
 /**
- * Catch unauthorized access to certain BuddyPress pages and redirect accordingly.
+ * Catches invalid access to BuddyPress pages and redirects them accordingly.
  *
- * @since BuddyPress (1.5.0)
+ * @package BuddyPress Core
+ * @since BuddyPress (1.5)
  */
 function bp_core_catch_no_access() {
 	global $bp, $wp_query;
@@ -455,26 +445,12 @@ function bp_core_catch_no_access() {
 add_action( 'bp_template_redirect', 'bp_core_catch_no_access', 1 );
 
 /**
- * Redirect a user to log in for BP pages that require access control.
- *
- * Add an error message (if one is provided).
- *
+ * Redirects a user to login for BP pages that require access control and adds an error message (if
+ * one is provided).
  * If authenticated, redirects user back to requested content by default.
  *
- * @since BuddyPress (1.5.0)
- *
- * @param array $args {
- *     @type int $mode Specifies the destintation of the redirect. 1 will
- *           direct to the root domain (home page), which assumes you have a
- *           log-in form there; 2 directs to wp-login.php. Default: 2.
- *     @type string $redirect The URL the user will be redirected to after
- *           successfully logging in. Default: the URL originally requested.
- *     @type string $root The root URL of the site, used in case of error or
- *           mode 1 redirects. Default: the value of {@link bp_get_root_domain()}.
- *     @type string $message An error message to display to the user on the
- *           log-in page. Default: "You must log in to access the page you
- *           requested."
- * }
+ * @package BuddyPress Core
+ * @since BuddyPress (1.5)
  */
 function bp_core_no_access( $args = '' ) {
 
@@ -536,13 +512,12 @@ function bp_core_no_access( $args = '' ) {
 }
 
 /**
- * Add an error message to wp-login.php.
- *
+ * Adds an error message to wp-login.php.
  * Hooks into the "bpnoaccess" action defined in bp_core_no_access().
  *
- * @since BuddyPress (1.5.0)
- *
- * @global $error Error message to pass to wp-login.php
+ * @package BuddyPress Core
+ * @global $error
+ * @since BuddyPress (1.5)
  */
 function bp_core_no_access_wp_login_error() {
 	global $error;
@@ -555,19 +530,17 @@ function bp_core_no_access_wp_login_error() {
 add_action( 'login_form_bpnoaccess', 'bp_core_no_access_wp_login_error' );
 
 /**
- * Canonicalize BuddyPress URLs.
+ * Canonicalizes BuddyPress URLs
  *
- * This function ensures that requests for BuddyPress content are always
- * redirected to their canonical versions. Canonical versions are always
- * trailingslashed, and are typically the most general possible versions of the
- * URL - eg, example.com/groups/mygroup/ instead of
- * example.com/groups/mygroup/home/.
+ * This function ensures that requests for BuddyPress content are always redirected to their
+ * canonical versions. Canonical versions are always trailingslashed, and are typically the most
+ * general possible versions of the URL - eg, example.com/groups/mygroup/ instead of
+ * example.com/groups/mygroup/home/
  *
- * @since BuddyPress (1.6.0)
- *
- * @see BP_Members_Component::setup_globals() where
- *      $bp->canonical_stack['base_url'] and ['component'] may be set.
- * @see bp_core_new_nav_item() where $bp->canonical_stack['action'] may be set.
+ * @since BuddyPress (1.6)
+ * @see BP_Members_Component::setup_globals() where $bp->canonical_stack['base_url'] and
+ *   ['component'] may be set
+ * @see bp_core_new_nav_item() where $bp->canonical_stack['action'] may be set
  * @uses bp_get_canonical_url()
  * @uses bp_get_requested_url()
  */
@@ -615,9 +588,9 @@ function bp_redirect_canonical() {
 }
 
 /**
- * Output rel=canonical header tag for BuddyPress content.
+ * Output rel=canonical header tag for BuddyPress content
  *
- * @since BuddyPress (1.6.0)
+ * @since BuddyPress (1.6)
  */
 function bp_rel_canonical() {
 	$canonical_url = bp_get_canonical_url();
@@ -627,18 +600,12 @@ function bp_rel_canonical() {
 }
 
 /**
- * Get the canonical URL of the current page.
+ * Returns the canonical URL of the current page
  *
- * @since BuddyPress (1.6.0)
- *
- * @uses apply_filters() Filter bp_get_canonical_url to modify return value.
- *
- * @param array $args {
- *     Optional array of arguments.
- *     @type bool $include_query_args Whether to include current URL arguments
- *           in the canonical URL returned from the function.
- * }
- * @return string Canonical URL for the current page.
+ * @since BuddyPress (1.6)
+ * @uses apply_filters() Filter bp_get_canonical_url to modify return value
+ * @param array $args
+ * @return string
  */
 function bp_get_canonical_url( $args = array() ) {
 	global $bp;
@@ -653,27 +620,6 @@ function bp_get_canonical_url( $args = array() ) {
 	);
 	$r = wp_parse_args( $args, $defaults );
 	extract( $r );
-
-	// Special case: when a BuddyPress directory (eg example.com/members)
-	// is set to be the front page, ensure that the current canonical URL
-	// is the home page URL.
-	if ( 'page' == get_option( 'show_on_front' ) && $page_on_front = (int) get_option( 'page_on_front' ) ) {
-		$front_page_component = array_search( $page_on_front, bp_core_get_directory_page_ids() );
-
-		// If requesting the front page component directory, canonical
-		// URL is the front page. We detect whether we're detecting a
-		// component *directory* by checking that bp_current_action()
-		// is empty - ie, this not a single item or a feed
-		if ( false !== $front_page_component && bp_is_current_component( $front_page_component ) && ! bp_current_action() ) {
-			$bp->canonical_stack['canonical_url'] = trailingslashit( bp_get_root_domain() );
-
-		// Except when the front page is set to the registration page
-		// and the current user is logged in. In this case we send to
-		// the members directory to avoid redirect loops
-		} else if ( bp_is_register_page() && 'register' == $front_page_component && is_user_logged_in() ) {
-			$bp->canonical_stack['canonical_url'] = apply_filters( 'bp_loggedin_register_page_redirect_to', trailingslashit( bp_get_root_domain() . '/' . bp_get_members_root_slug() ) );
-		}
-	}
 
 	if ( empty( $bp->canonical_stack['canonical_url'] ) ) {
 		// Build the URL in the address bar
@@ -708,19 +654,17 @@ function bp_get_canonical_url( $args = array() ) {
 	$canonical_url = $bp->canonical_stack['canonical_url'];
 
 	if ( !$include_query_args ) {
-		$canonical_url = array_reverse( explode( '?', $canonical_url ) );
-		$canonical_url = array_pop( $canonical_url );
+		$canonical_url = array_pop( array_reverse( explode( '?', $canonical_url ) ) );
 	}
 
 	return apply_filters( 'bp_get_canonical_url', $canonical_url, $args );
 }
 
 /**
- * Return the URL as requested on the current page load by the user agent.
+ * Returns the URL as requested on the current page load by the user agent
  *
- * @since BuddyPress (1.6.0)
- *
- * @return string Requested URL string.
+ * @since BuddyPress (1.6)
+ * @return string
  */
 function bp_get_requested_url() {
 	global $bp;
@@ -734,16 +678,14 @@ function bp_get_requested_url() {
 }
 
 /**
- * Remove WP's canonical redirect when we are trying to load BP-specific content.
- *
- * Avoids issues with WordPress thinking that a BuddyPress URL might actually
- * be a blog post or page.
+ * Remove WordPress's really awesome canonical redirect if we are trying to load
+ * BuddyPress specific content. Avoids issues with WordPress thinking that a
+ * BuddyPress URL might actually be a blog post or page.
  *
  * This function should be considered temporary, and may be removed without
  * notice in future versions of BuddyPress.
  *
- * @since BuddyPress (1.6.0)
- *
+ * @since BuddyPress (1.6)
  * @uses bp_is_blog_page()
  */
 function _bp_maybe_remove_redirect_canonical() {
@@ -753,7 +695,7 @@ function _bp_maybe_remove_redirect_canonical() {
 add_action( 'bp_init', '_bp_maybe_remove_redirect_canonical' );
 
 /**
- * Rehook maybe_redirect_404() to run later than the default.
+ * Rehook maybe_redirect_404() to run later than the default
  *
  * WordPress's maybe_redirect_404() allows admins on a multisite installation
  * to define 'NOBLOGREDIRECT', a URL to which 404 requests will be redirected.
@@ -788,12 +730,13 @@ function _bp_rehook_maybe_redirect_404() {
 add_action( 'template_redirect', '_bp_rehook_maybe_redirect_404', 1 );
 
 /**
- * Remove WP's rel=canonical HTML tag if we are trying to load BP-specific content.
+ * Remove WordPress's rel=canonical HTML tag if we are trying to load BuddyPress
+ * specific content.
  *
  * This function should be considered temporary, and may be removed without
  * notice in future versions of BuddyPress.
  *
- * @since BuddyPress (1.6.0)
+ * @since BuddyPress (1.6)
  */
 function _bp_maybe_remove_rel_canonical() {
 	if ( ! bp_is_blog_page() && ! is_404() ) {

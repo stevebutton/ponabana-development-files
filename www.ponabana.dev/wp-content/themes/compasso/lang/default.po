@@ -1,18 +1,16 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: Compasso\n"
-"POT-Creation-Date: 2014-04-24 23:38+0700\n"
-"PO-Revision-Date: 2014-04-24 23:38+0700\n"
+"Project-Id-Version: compasso\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-06-18 06:50+0700\n"
+"PO-Revision-Date: 2013-06-18 06:51+0700\n"
 "Last-Translator: \n"
 "Language-Team: \n"
-"Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.6.4\n"
+"X-Poedit-KeywordsList: __;_e\n"
 "X-Poedit-Basepath: .\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Poedit-KeywordsList: _e;__\n"
 "X-Poedit-SearchPath-0: ..\n"
 
 #: ../archive.php:11
@@ -43,19 +41,21 @@ msgid "Subscribe to this category"
 msgstr ""
 
 #: ../comments.php:7
-msgid ""
-"This post is password protected. Enter the password to view any comments."
+msgid "This post is password protected. Enter the password to view any comments."
 msgstr ""
 
-#: ../comments.php:20 ../comments.php:32
+#: ../comments.php:20
+#: ../comments.php:32
 msgid "Comment navigation"
 msgstr ""
 
-#: ../comments.php:21 ../comments.php:33
+#: ../comments.php:21
+#: ../comments.php:33
 msgid "&larr; Older Comments"
 msgstr ""
 
-#: ../comments.php:22 ../comments.php:34
+#: ../comments.php:22
+#: ../comments.php:34
 msgid "Newer Comments &rarr;"
 msgstr ""
 
@@ -63,7 +63,8 @@ msgstr ""
 msgid "Comments are closed."
 msgstr ""
 
-#: ../content-grid.php:57 ../content.php:51
+#: ../content-grid.php:57
+#: ../content.php:51
 msgid "Read More"
 msgstr ""
 
@@ -75,145 +76,187 @@ msgstr ""
 msgid "Sorry, no posts matched your criteria."
 msgstr ""
 
-#: ../content-page.php:6 ../content-single.php:37 ../functions.php:533
-#: ../page-contact.php:41
+#: ../content-page.php:6
+#: ../content-single.php:24
+#: ../functions.php:526
 msgid "Edit"
 msgstr ""
 
-#: ../content-page.php:20 ../content-single.php:70 ../page-contact.php:49
-msgid "Pages"
-msgstr ""
-
-#: ../content-single.php:29
+#: ../content-single.php:16
 msgid "Posted on"
 msgstr ""
 
-#: ../content-single.php:31
+#: ../content-single.php:18
 msgid "by"
 msgstr ""
 
-#: ../content-single.php:33
+#: ../content-single.php:20
 msgid "in"
 msgstr ""
 
-#: ../content-single.php:35
+#: ../content-single.php:22
 msgid "with"
 msgstr ""
 
-#: ../content-single.php:60 ../includes/metabox/class.metabox.php:228
+#: ../content-single.php:45
 msgid "Overall"
 msgstr ""
 
-#: ../content-single.php:77 ../includes/widgets/tabs.php:77
+#: ../content-single.php:58
 msgid "Tags"
 msgstr ""
 
-#: ../content-single.php:83
+#: ../content-single.php:64
 msgid "Share this post"
 msgstr ""
 
-#: ../content-single.php:99
+#: ../content-single.php:80
 msgid "Author"
 msgstr ""
 
-#: ../content-single.php:106
+#: ../content-single.php:87
 #, php-format
 msgid "View all posts by %s"
 msgstr ""
 
-#: ../content-single.php:118
+#: ../content-single.php:99
 msgid "Related Posts"
 msgstr ""
 
-#: ../functions.php:134
+#: ../functions.php:127
 msgid "Main Menu"
 msgstr ""
 
-#: ../functions.php:135
+#: ../functions.php:128
 msgid "Top Menu"
 msgstr ""
 
-#: ../functions.php:168
+#: ../functions.php:161
 msgid "Navigate to..."
 msgstr ""
 
-#: ../functions.php:431 ../functions.php:458
+#: ../functions.php:424
+#: ../functions.php:451
 msgid "No related posts found"
 msgstr ""
 
-#: ../functions.php:495
+#: ../functions.php:488
 msgid "First"
 msgstr ""
 
-#: ../functions.php:498
+#: ../functions.php:491
 msgid "Previous"
 msgstr ""
 
-#: ../functions.php:510
+#: ../functions.php:503
 msgid "Next"
 msgstr ""
 
-#: ../functions.php:513
+#: ../functions.php:506
 msgid "Last"
 msgstr ""
 
-#: ../functions.php:533
+#: ../functions.php:526
 msgid "Pingback:"
 msgstr ""
 
-#: ../functions.php:546
+#: ../functions.php:539
 #, php-format
 msgid "%1$s at %2$s"
 msgstr ""
 
-#: ../functions.php:549
+#: ../functions.php:542
 msgid "(Edit)"
 msgstr ""
 
-#: ../functions.php:553
+#: ../functions.php:546
 msgid "Your comment is awaiting moderation."
 msgstr ""
 
-#: ../functions.php:555
+#: ../functions.php:548
 msgid "Reply"
 msgstr ""
 
-#: ../functions.php:581
+#: ../functions.php:574
 msgid "Home"
 msgstr ""
 
-#: ../functions.php:604
+#: ../functions.php:597
 msgid "Category Archives"
 msgstr ""
 
-#: ../functions.php:645
+#: ../functions.php:638
 msgid "Search Results for:"
 msgstr ""
 
-#: ../functions.php:647
+#: ../functions.php:640
 msgid "Post Tagged with:"
 msgstr ""
 
-#: ../functions.php:653
+#: ../functions.php:646
 msgid "Author Archive"
 msgstr ""
 
-#: ../functions.php:655
+#: ../functions.php:648
 msgid "Page Not Found"
 msgstr ""
 
-#: ../functions.php:861 ../includes/metabox/class.metabox.php:116
-#: ../includes/metabox/class.metabox.php:284
-#: ../includes/metabox/class.metabox.php:312 ../includes/widgets.php:103
+#: ../functions.php:854
 msgid "All Categories"
 msgstr ""
 
-#: ../functions.php:871
+#: ../functions.php:864
 msgid "View all posts under this category"
 msgstr ""
 
-#: ../header.php:71 ../searchform.php:1
+#: ../header.php:71
 msgid "Search..."
+msgstr ""
+
+#: ../page-categories-masonry.php:30
+msgid "Recent Posts"
+msgstr ""
+
+#: ../page-contact.php:53
+#: ../page-contact.php:67
+msgid "Error"
+msgstr ""
+
+#: ../page-contact.php:60
+msgid "Success"
+msgstr ""
+
+#: ../page-contact.php:77
+msgid "Name"
+msgstr ""
+
+#: ../page-contact.php:81
+msgid "Email"
+msgstr ""
+
+#: ../page-contact.php:85
+msgid "Message"
+msgstr ""
+
+#: ../page-contact.php:89
+msgid "Please leave this field blank"
+msgstr ""
+
+#: ../page-contact.php:93
+msgid "Send"
+msgstr ""
+
+#: ../search.php:10
+#, php-format
+msgid "Search Results for: %s"
+msgstr ""
+
+#: ../searchform.php:1
+msgid "Go"
+msgstr ""
+
+#: ../slider.php:51
+msgid "read more"
 msgstr ""
 
 #: ../includes/ajax_action.php:12
@@ -240,62 +283,8 @@ msgstr ""
 msgid "Sorry, a server error occurred. Your message has not been sent."
 msgstr ""
 
-#: ../includes/metabox/class.metabox.php:224
-msgid "Add Rating"
-msgstr ""
-
-#: ../includes/metabox/class.metabox.php:225
-msgid "Criteria"
-msgstr ""
-
-#: ../includes/metabox/class.metabox.php:226
-msgid "Rating"
-msgstr ""
-
-#: ../includes/metabox/class.metabox.php:249
-msgid "Category"
-msgstr ""
-
-#: ../includes/metabox/class.metabox.php:253 ../includes/widgets.php:177
-msgid "Number of posts to show"
-msgstr ""
-
-#: ../includes/metabox/class.metabox.php:259
-msgid "Delete"
-msgstr ""
-
-#: ../includes/options/class.options.php:67
-#: ../includes/options/class.options.php:68
-#: ../includes/options/class.options.php:349
-msgid "Theme Options"
-msgstr ""
-
-#: ../includes/options/class.options.php:120
-msgid "Default options restored."
-msgstr ""
-
-#: ../includes/options/class.options.php:154
-msgid "Options saved."
-msgstr ""
-
-#: ../includes/options/class.options.php:381
-msgid "Save All Settings"
-msgstr ""
-
-#: ../includes/options/class.options.php:382
-msgid "Reset"
-msgstr ""
-
-#: ../includes/options/class.options.php:382
-msgid "Data will be reset to default. Are you sure?"
-msgstr ""
-
-#: ../includes/widgets.php:152 ../includes/widgets/ads-125.php:19
-#: ../includes/widgets/ads-300.php:19 ../includes/widgets/comments.php:19
-#: ../includes/widgets/contact.php:19 ../includes/widgets/facebook.php:19
-#: ../includes/widgets/flickr.php:19 ../includes/widgets/social.php:21
-#: ../includes/widgets/subpages.php:19 ../includes/widgets/twitter.php:19
-#: ../includes/widgets/video.php:19
+#: ../includes/widgets.php:152
+#: ../includes/widgets/ads-125.php:19
 msgid "Title"
 msgstr ""
 
@@ -307,7 +296,7 @@ msgstr ""
 msgid "Recent"
 msgstr ""
 
-#: ../includes/widgets.php:161 ../includes/widgets/tabs.php:76
+#: ../includes/widgets.php:161
 msgid "Popular"
 msgstr ""
 
@@ -319,7 +308,11 @@ msgstr ""
 msgid "Filter by Category"
 msgstr ""
 
-#: ../includes/widgets.php:186 ../includes/widgets/tabs.php:33
+#: ../includes/widgets.php:177
+msgid "Number of posts to show"
+msgstr ""
+
+#: ../includes/widgets.php:186
 msgid "Show thumbnails"
 msgstr ""
 
@@ -327,7 +320,7 @@ msgstr ""
 msgid "Show ratings (if available)"
 msgstr ""
 
-#: ../includes/widgets.php:200 ../includes/widgets/tabs.php:38
+#: ../includes/widgets.php:200
 msgid "Show dates"
 msgstr ""
 
@@ -369,6 +362,32 @@ msgstr ""
 
 #: ../includes/widgets.php:407
 msgid "Footer 4"
+msgstr ""
+
+#: ../includes/options/class.options.php:67
+#: ../includes/options/class.options.php:68
+#: ../includes/options/class.options.php:349
+msgid "Theme Options"
+msgstr ""
+
+#: ../includes/options/class.options.php:120
+msgid "Default options restored."
+msgstr ""
+
+#: ../includes/options/class.options.php:154
+msgid "Options saved."
+msgstr ""
+
+#: ../includes/options/class.options.php:381
+msgid "Save All Settings"
+msgstr ""
+
+#: ../includes/options/class.options.php:382
+msgid "Reset"
+msgstr ""
+
+#: ../includes/options/class.options.php:382
+msgid "Data will be reset to default. Are you sure?"
 msgstr ""
 
 #: ../includes/widgets/ads-125.php:9
@@ -425,26 +444,6 @@ msgstr ""
 
 #: ../includes/widgets/contact.php:20
 msgid "Get In Touch"
-msgstr ""
-
-#: ../includes/widgets/contact.php:43 ../page-contact.php:81
-msgid "Name"
-msgstr ""
-
-#: ../includes/widgets/contact.php:48 ../page-contact.php:85
-msgid "Email"
-msgstr ""
-
-#: ../includes/widgets/contact.php:53 ../page-contact.php:89
-msgid "Message"
-msgstr ""
-
-#: ../includes/widgets/contact.php:57 ../page-contact.php:93
-msgid "Please leave this field blank"
-msgstr ""
-
-#: ../includes/widgets/contact.php:64 ../page-contact.php:97
-msgid "Send"
 msgstr ""
 
 #: ../includes/widgets/facebook.php:9
@@ -583,28 +582,3 @@ msgstr ""
 msgid "Description"
 msgstr ""
 
-#: ../page-categories-masonry.php:30 ../page-categories.php:36
-#: ../page-categories.php:67
-msgid "Recent Posts"
-msgstr ""
-
-#: ../page-contact.php:57 ../page-contact.php:71
-msgid "Error"
-msgstr ""
-
-#: ../page-contact.php:64
-msgid "Success"
-msgstr ""
-
-#: ../search.php:10
-#, php-format
-msgid "Search Results for: %s"
-msgstr ""
-
-#: ../searchform.php:1
-msgid "Go"
-msgstr ""
-
-#: ../slider.php:51
-msgid "read more"
-msgstr ""

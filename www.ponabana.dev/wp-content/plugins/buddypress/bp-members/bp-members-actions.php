@@ -15,24 +15,15 @@
 if ( !defined( 'ABSPATH' ) ) exit;
 
 /**
- * Catch a "Mark as Spammer/Not Spammer" click from the toolbar.
- *
  * When a site admin selects "Mark as Spammer/Not Spammer" from the admin menu
  * this action will fire and mark or unmark the user and their blogs as spam.
  * Must be a site admin for this function to run.
  *
- * Note: no longer used in the current state. See the Settings component.
- *
- * @param int $user_id Optional. User ID to mark as spam. Defaults to displayed
- *        user.
+ * @package BuddyPress Core
+ * @param int $user_id Optional user ID to mark as spam
+ * @global object $wpdb Global WordPress Database object
  */
 function bp_core_action_set_spammer_status( $user_id = 0 ) {
-
-	// Only super admins can currently spam users (but they can't spam
-	// themselves)
-	if ( ! is_super_admin() || bp_is_my_profile() ) {
-		return;
-	}
 
 	// Use displayed user if it's not yourself
 	if ( empty( $user_id ) )
@@ -68,9 +59,9 @@ function bp_core_action_set_spammer_status( $user_id = 0 ) {
 //add_action( 'bp_actions', 'bp_core_action_set_spammer_status' );
 
 /**
- * Process user deletion requests.
+ * Allows a site admin to delete a user from the adminbar menu.
  *
- * Note: No longer called here. See the Settings component.
+ * @package BuddyPress Core
  */
 function bp_core_action_delete_user() {
 
@@ -104,8 +95,10 @@ function bp_core_action_delete_user() {
 //add_action( 'bp_actions', 'bp_core_action_delete_user' );
 
 /**
- * Redirect to a random member page when visiting a ?random-member URL.
+ * Returns the user_id for a user based on their username.
  *
+ * @package BuddyPress Core
+ * @param string $username Username to check.
  * @since BuddyPress (1.0)
  */
 function bp_core_get_random_member() {

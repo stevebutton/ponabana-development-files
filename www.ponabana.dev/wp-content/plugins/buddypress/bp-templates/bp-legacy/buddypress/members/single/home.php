@@ -45,9 +45,6 @@
 		elseif ( bp_is_user_forums() ) :
 			bp_get_template_part( 'members/single/forums'   );
 
-		elseif ( bp_is_user_notifications() ) :
-			bp_get_template_part( 'members/single/notifications' );
-
 		elseif ( bp_is_user_settings() ) :
 			bp_get_template_part( 'members/single/settings' );
 

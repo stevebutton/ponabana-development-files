@@ -6,27 +6,22 @@
 	$action_response = __("Settings Saved", 'wpduplicator');
 	if (isset($_POST['action']) && $_POST['action'] == 'save') {
 		//General Tab
-		//Plugin
 		DUP_Settings::Set('uninstall_settings',		isset($_POST['uninstall_settings']) ? "1" : "0");
 		DUP_Settings::Set('uninstall_files',		isset($_POST['uninstall_files'])  ? "1" : "0");
 		DUP_Settings::Set('uninstall_tables',		isset($_POST['uninstall_tables']) ? "1" : "0");
-		DUP_Settings::Set('storage_htaccess_off',	isset($_POST['storage_htaccess_off']) ? "1" : "0");
-		
-		//Package
+		DUP_Settings::Set('package_skip_scanner',	isset($_POST['package_skip_scanner']) ? "1" : "0");
 		DUP_Settings::Set('package_debug',			isset($_POST['package_debug']) ? "1" : "0");
 		DUP_Settings::Set('package_zip_flush',		isset($_POST['package_zip_flush']) ? "1" : "0");
 		DUP_Settings::Set('package_mysqldump',		isset($_POST['package_mysqldump']) ? "1" : "0");
 		DUP_Settings::Set('package_mysqldump_path',	trim($_POST['package_mysqldump_path']));
 		
 		$action_updated  = DUP_Settings::Save();
-		DUP_Util::InitSnapshotDirectory();
 	} 
 
 	$uninstall_settings		= DUP_Settings::Get('uninstall_settings');
 	$uninstall_files		= DUP_Settings::Get('uninstall_files');
 	$uninstall_tables		= DUP_Settings::Get('uninstall_tables');
-	$storage_htaccess_off	= DUP_Settings::Get('storage_htaccess_off');
-	
+	$package_skip_scanner	= DUP_Settings::Get('package_skip_scanner');
 	$package_debug			= DUP_Settings::Get('package_debug');
 	$package_zip_flush		= DUP_Settings::Get('package_zip_flush');
 	$package_mysqldump		= DUP_Settings::Get('package_mysqldump');
@@ -62,32 +57,20 @@
 	<hr size="1" />
 	<table class="form-table">
 		<tr valign="top">
-			<th scope="row"><label><?php _e("Version", 'wpduplicator'); ?></label></th>
+			<th scope="row"><label><?php _e("Duplicator Version", 'wpduplicator'); ?></label></th>
 			<td><?php echo DUPLICATOR_VERSION ?></td>
-		</tr>	
+		</tr>
 		<tr valign="top">
-			<th scope="row"><label><?php _e("Uninstall", 'wpduplicator'); ?></label></th>
+			<th scope="row"><label><?php _e("Uninstall Options", 'wpduplicator'); ?></label></th>
 			<td>
 				<input type="checkbox" name="uninstall_settings" id="uninstall_settings" <?php echo ($uninstall_settings) ? 'checked="checked"' : ''; ?> /> 
 				<label for="uninstall_settings"><?php _e("Delete Plugin Settings", 'wpduplicator') ?> </label><br/>
 
 				<input type="checkbox" name="uninstall_files" id="uninstall_files" <?php echo ($uninstall_files) ? 'checked="checked"' : ''; ?> /> 
-				<label for="uninstall_files"><?php _e("Delete Entire Storage Directory", 'wpduplicator') ?></label><br/>
-
+				<label for="uninstall_files"><?php _e("Delete Entire Snapshot Directory", 'wpduplicator') ?></label><br/>
+				<p class="description"><?php _e("Snapshot Directory", 'wpduplicator'); ?>: <?php echo DUP_Util::SafePath(DUPLICATOR_SSDIR_PATH); ?></p>
 			</td>
 		</tr>
-		<tr valign="top">
-			<th scope="row"><label><?php _e("Storage", 'wpduplicator'); ?></label></th>
-			<td>
-				<?php _e("Full Path", 'wpduplicator'); ?>: 
-				<?php echo  DUP_Util::SafePath(DUPLICATOR_SSDIR_PATH); ?><br/><br/>
-				<input type="checkbox" name="storage_htaccess_off" id="storage_htaccess_off" <?php echo ($storage_htaccess_off) ? 'checked="checked"' : ''; ?> /> 
-				<label for="storage_htaccess_off"><?php _e("Disable .htaccess File In Storage Directory", 'wpduplicator') ?> </label>
-				<p class="description">
-					<?php  _e("Disable if issues occur when downloading installer/archive files.", 'wpduplicator'); ?>
-				</p>
-			</td>
-		</tr>	
 	</table>
 	
 	
@@ -96,6 +79,16 @@
 	<h3 class="title"><?php _e("Package", 'wpduplicator') ?> </h3>
 	<hr size="1" />
 	<table class="form-table">
+		<tr>
+			<th scope="row"><label><?php _e("Auto Skip Scanner", 'wpduplicator'); ?></label></th>
+			<td>
+				<input type="checkbox" name="package_skip_scanner" id="package_skip_scanner" <?php echo ($package_skip_scanner) ? 'checked="checked"' : ''; ?> />
+				<label for="package_skip_scanner"><?php _e("Skip Scanner Step", 'wpduplicator'); ?></label>
+				<p class="description">
+					<?php _e("Keeps the 'Skip Scan (step 2)' option checked.", 'wpduplicator'); ?>
+				</p>
+			</td>
+		</tr>
 		<tr>
 			<th scope="row"><label><?php _e("Archive Flush", 'wpduplicator'); ?></label></th>
 			<td>
@@ -135,7 +128,7 @@
 									_e('Mysqldump was not found at its default location or the location provided.  Please enter a path to a valid location where mysqldump can run.  If the problem persist contact your server administrator.', 'wpduplicator'); 
 								?>
 							</div><br/>
-						<?php endif; ?>
+						<?php endif ?>
 
 						<label><?php _e("Add Custom Path:", 'wpduplicator'); ?></label><br/>
 						<input type="text" name="package_mysqldump_path" id="package_mysqldump_path" value="<?php echo $package_mysqldump_path; ?> " />
@@ -146,7 +139,7 @@
 						</p>
 					</div>
 			
-				<?php endif; ?>
+				<?php endif ?>
 			</td>
 		</tr>	
 		<tr>

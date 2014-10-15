@@ -1,8 +1,6 @@
 <?php
 	$qryResult = $wpdb->get_results("SELECT * FROM `{$wpdb->prefix}duplicator_packages` ORDER BY id DESC", ARRAY_A);
-	$qryStatus = $wpdb->get_results("SELECT status FROM `{$wpdb->prefix}duplicator_packages` WHERE status >= 100", ARRAY_A);
 	$totalElements = count($qryResult);
-	$statusCount   = count($qryStatus);
 	$package_debug = DUP_Settings::Get('package_debug');
 ?>
 
@@ -56,9 +54,9 @@
 	
 	<!-- ====================
 	TOOL-BAR -->
-	<table border="0" id="toolbar-table" cellspacing="0" style="margin-top:15px; width:100%">
+	<table border="0" id="toolbar-table" cellspacing="0" style="margin-top:15px">
 		<tr valign="top">
-			<td style="white-space: nowrap">
+			<td>
 				<div class="alignleft actions">
 					<select id="dup-pack-bulk-actions">
 						<option value="-1" selected="selected"><?php _e("Bulk Actions", 'wpduplicator') ?></option>
@@ -72,13 +70,6 @@
 			<td><img src="<?php echo DUPLICATOR_PLUGIN_URL  ?>assets/img/hdivider.png" class="toolbar-divider" /></td>
 			<td align="center">
 				<a href="?page=duplicator-tools" id="btn-logs-dialog" class="button"  title="<?php _e("Package Logs", 'wpduplicator') ?>..."><i class="fa fa-pencil-square-o"></i> </button>
-			</td>
-			<td align="right" style="width:100%;">
-				<?php if($statusCount >= 3)  :	?>
-				<div style="margin:8px 5px 0px 0px; font-size:13px">
-					<a href="admin.php?page=duplicator-about"  style="color:maroon"><i><i class="fa fa-check-circle"></i> <?php _e("Help Support Duplicator", 'wpduplicator') ?></i> </a>
-				</div>
-				<?php endif; ?>	
 			</td>
 		</tr>
 	</table>	
@@ -133,7 +124,6 @@
 			$packagepath 		= $pack_storeurl . "{$uniqueid}_archive.zip";
 			$installerpath		= $pack_storeurl . "{$uniqueid}_installer.php";
 			$logfilelink		= $pack_storeurl . "{$uniqueid}.log";
-			$reportfilelink		= $pack_storeurl . "{$uniqueid}_scan.json";
 			$installfilelink	= "{$installerpath}?get=1&file={$uniqueid}_installer.php";
 			$logfilename	    = "{$uniqueid}.log";
 			$css_alt		    = ($rowCount % 2 != 0) ? '' : 'alternate';
@@ -151,7 +141,7 @@
 						<button id="<?php echo "{$uniqueid}_installer.php" ?>" class="button no-select" onclick="Duplicator.Pack.DownloadFile('<?php echo $installfilelink; ?>', this); return false;"><i class="fa fa-bolt"></i> <?php _e("Installer", 'wpduplicator') ?></button> &nbsp;
 					</td>
 					<td class="get-btns">	
-						<button id="<?php echo "{$uniqueid}_archive.zip" ?>" class="button no-select" onclick="Duplicator.Pack.DownloadFile('<?php echo $packagepath; ?>', this); return false;"><i class="fa fa-file-archive-o"></i> <?php _e("Archive", 'wpduplicator') ?></button>
+						<button id="<?php echo "{$uniqueid}_archive.zip" ?>" class="button no-select" onclick="Duplicator.Pack.DownloadFile('<?php echo $packagepath; ?>', this); return false;"><i class="fa fa-bars"></i> <?php _e("Archive", 'wpduplicator') ?></button>
 					</td>
 				</tr>
 				<tr>
@@ -161,16 +151,15 @@
 						<b><?php _e("Hash", 'wpduplicator')?>:</b> <?php echo $pack_namehash ;?> <br/>
 						<b><?php _e("Notes", 'wpduplicator')?>:</b> <?php echo $notes ?> 
 						<div style="height:7px">&nbsp;</div>
-						<button class="button" onclick="Duplicator.Pack.ShowLinksDialog(<?php echo "'{$sqlfilelink}', '{$packagepath}', '{$installfilelink}', '{$logfilelink}', '{$reportfilelink}' " ;?>); return false;" class="thickbox"><i class="fa fa-lock"></i> &nbsp; <?php _e("Links", 'wpduplicator')?></button> &nbsp; 
+						<button class="button" onclick="Duplicator.Pack.ShowLinksDialog(<?php echo "'{$sqlfilelink}', '{$packagepath}', '{$installfilelink}', '{$logfilelink}' " ;?>); return false;" class="thickbox"><i class="fa fa-lock"></i> &nbsp; <?php _e("Links", 'wpduplicator')?></button> &nbsp; 
 						<button class="button" onclick="window.open(<?php echo "'{$sqlfilelink}', '_blank'" ;?>); return false;"><i class="fa fa-table"></i> &nbsp; <?php _e("SQL File", 'wpduplicator')?></button> &nbsp; 
 						<button class="button" onclick="Duplicator.OpenLogWindow(<?php echo "'{$logfilename}'" ;?>); return false;"><i class="fa fa-pencil-square-o"></i> &nbsp; <?php _e("View Log", 'wpduplicator')?></button>
 						<?php if ($package_debug) : ?>
 							<div style="margin-top:7px">
-								<a href="javascript:void(0)" onclick="window.open(<?php echo "'{$reportfilelink}', '_blank'" ;?>); return false;">[<?php _e("Open Scan Report", 'wpduplicator')?>]</a> &nbsp;
-								<a href="javascript:void(0)" onclick="jQuery(this).parent().find('.dup-pack-debug').toggle()">[<?php _e("View Package Object", 'wpduplicator')?>]</a><br/>
-								<textarea class="dup-pack-debug"><?php @print_r($Package); ?> </textarea>
+								<a href="javascript:void(0)" onclick="jQuery(this).parent().find('.dup-pack-debug').toggle()">[View Package Object]</a><br/>
+								<textarea class="dup-pack-debug"><?php print_r($Package);?> </textarea>
 							</div>
-						<?php endif;  ?>	
+						<?php endif  ?>	
 					</td>
 				</tr>	
 				
@@ -220,8 +209,8 @@
 										<a href="javascript:void(0)" onclick="jQuery(this).parent().find('.dup-pack-debug').toggle()">[View Package Object]</a><br/>
 										<textarea class="dup-pack-debug"><?php print_r($Package);?> </textarea>
 									</div>
-								<?php endif;  ?>	
-							<?php endif;  ?>	
+								<?php endif  ?>	
+							<?php endif  ?>	
 							
 							
 						</div>
@@ -331,17 +320,16 @@ jQuery(document).ready(function($) {
 	 *	@param db		The path to the sql file
 	 *	@param install	The path to the install file 
 	 *	@param pack		The path to the package file */
-	Duplicator.Pack.ShowLinksDialog = function(db, install, pack, log, report) {
+	Duplicator.Pack.ShowLinksDialog = function(db, install, pack, log) {
 		
 		var url = '#TB_inline?width=650&height=350&inlineId=dup-dlg-quick-path';
 		tb_show("<?php _e('Package File Links', 'wpduplicator') ?>", url);
 		
-		var msg = <?php printf('"%s:\n" + db + "\n\n%s:\n" + install + "\n\n%s:\n" + pack + "\n\n%s:\n" + log + "\n\n%s:\n" + report;', 
+		var msg = <?php printf('"%s:\n" + db + "\n\n%s:\n" + install + "\n\n%s:\n" + pack + "\n\n%s:\n" + log;', 
 			__("DATABASE",  'wpduplicator'), 
 			__("PACKAGE", 'wpduplicator'), 
 			__("INSTALLER",   'wpduplicator'),
-			__("LOG", 'wpduplicator'),
-			__("REPORT", 'wpduplicator')); 
+			__("LOG", 'wpduplicator')); 
 		?>
 		$("#dup-dlg-quick-path-data").val(msg);
 		return false;

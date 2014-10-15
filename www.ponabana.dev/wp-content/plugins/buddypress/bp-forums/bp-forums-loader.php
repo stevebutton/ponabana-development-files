@@ -5,11 +5,8 @@
  *
  * A discussion forums component. Comes bundled with bbPress stand-alone.
  *
- * Note: The bp-forums component has been retired. Use the bbPress WordPress
- * plugin instead.
- *
  * @package BuddyPress
- * @subpackage Forums
+ * @subpackage Forums Core
  */
 
 // Exit if accessed directly
@@ -18,32 +15,25 @@ if ( !defined( 'ABSPATH' ) ) exit;
 class BP_Forums_Component extends BP_Component {
 
 	/**
-	 * Start the forums component creation process.
+	 * Start the forums component creation process
 	 *
-	 * @since BuddyPress (1.5.0)
+	 * @since BuddyPress (1.5)
 	 */
-	public function __construct() {
+	function __construct() {
 		parent::start(
 			'forums',
 			__( 'Discussion Forums', 'buddypress' ),
-			buddypress()->plugin_dir,
-			array(
-				'adminbar_myaccount_order' => 80
-			)
+			BP_PLUGIN_DIR
 		);
 	}
 
 	/**
-	 * Set up bp-forums global settings.
+	 * Setup globals
 	 *
 	 * The BP_FORUMS_SLUG constant is deprecated, and only used here for
 	 * backwards compatibility.
 	 *
-	 * @since BuddyPress (1.5.0)
-	 *
-	 * @see BP_Component::setup_globals() for description of parameters.
-	 *
-	 * @param array $args See {@link BP_Component::setup_globals()}.
+	 * @since BuddyPress (1.5)
 	 */
 	public function setup_globals( $args = array() ) {
 		$bp = buddypress();
@@ -74,11 +64,7 @@ class BP_Forums_Component extends BP_Component {
 	}
 
 	/**
-	 * Include bp-forums files.
-	 *
-	 * @see BP_Component::includes() for description of parameters.
-	 *
-	 * @param array $includes See {@link BP_Component::includes()}.
+	 * Include files
 	 */
 	public function includes( $includes = array() ) {
 
@@ -106,16 +92,7 @@ class BP_Forums_Component extends BP_Component {
 	}
 
 	/**
-	 * Set up component navigation.
-	 *
-	 * @since BuddyPress (1.5.0)
-	 *
-	 * @see BP_Component::setup_nav() for a description of arguments.
-	 *
-	 * @param array $main_nav Optional. See BP_Component::setup_nav() for
-	 *        description.
-	 * @param array $sub_nav Optional. See BP_Component::setup_nav() for
-	 *        description.
+	 * Setup BuddyBar navigation
 	 */
 	public function setup_nav( $main_nav = array(), $sub_nav = array() ) {
 
@@ -175,16 +152,12 @@ class BP_Forums_Component extends BP_Component {
 	}
 
 	/**
-	 * Set up bp-forums integration with the WordPress admin bar.
-	 *
-	 * @since BuddyPress (1.5.0)
-	 *
-	 * @see BP_Component::setup_admin_bar() for a description of arguments.
-	 *
-	 * @param array $wp_admin_nav See BP_Component::setup_admin_bar()
-	 *        for description.
+	 * Set up the Toolbar
 	 */
 	public function setup_admin_bar( $wp_admin_nav = array() ) {
+
+		// Prevent debug notices
+		$wp_admin_nav = array();
 
 		// Menus for logged in user
 		if ( is_user_logged_in() ) {
@@ -229,9 +202,9 @@ class BP_Forums_Component extends BP_Component {
 	}
 
 	/**
-	 * Set up the title for pages and the <title> element.
+	 * Sets up the title for pages and <title>
 	 */
-	public function setup_title() {
+	function setup_title() {
 		$bp = buddypress();
 
 		// Adjust title based on view
@@ -252,9 +225,6 @@ class BP_Forums_Component extends BP_Component {
 	}
 }
 
-/**
- * Set up the bp-forums component.
- */
 function bp_setup_forums() {
 	buddypress()->forums = new BP_Forums_Component();
 }

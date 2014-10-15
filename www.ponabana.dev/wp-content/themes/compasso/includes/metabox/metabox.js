@@ -83,7 +83,7 @@ jQuery(function($) {
 		handle: '.widget-top',
 		placeholder: 'widget-placeholder',
 		update: function () {
-			var sorted = $('.g7-dragdrop').sortable('serialize');
+			var sorted = $('.metabox-holder').sortable('serialize');
 		}
 	});
 

@@ -1,10 +1,14 @@
 /**
  * Heartbeat API
  *
+ * Note: this API is "experimental" meaning it will likely change a lot
+ * in the next few releases based on feedback from 3.6.0. If you intend
+ * to use it, please follow the development closely.
+ *
  * Heartbeat is a simple server polling API that sends XHR requests to
  * the server every 15 - 60 seconds and triggers events (or callbacks) upon
  * receiving data. Currently these 'ticks' handle transports for post locking,
- * login-expiration warnings, autosave, and related tasks while a user is logged in.
+ * login-expiration warnings, and related tasks while a user is logged in.
  *
  * Available PHP filters (in ajax-actions.php):
  * - heartbeat_received
@@ -63,7 +67,7 @@
 				// Whether a connection is currently in progress
 				connecting: false,
 
-				// Whether a connection error occurred
+				// Whether a connection error occured
 				connectionError: false,
 
 				// Used to track non-critical errors

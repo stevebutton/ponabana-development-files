@@ -67,7 +67,7 @@ class Red_Item {
 	static function get_all_for_module( $module ) {
 		global $wpdb;
 
-		$sql = $wpdb->prepare( "SELECT @redirection_items.*,@redirection_groups.tracking FROM @redirection_items INNER JOIN @redirection_groups ON @redirection_groups.id=@redirection_items.group_id AND @redirection_groups.status='enabled' AND @redirection_groups.module_id=%d WHERE @redirection_items.status='enabled' ORDER BY @redirection_groups.position,@redirection_items.position", $module );
+		$sql = "SELECT @redirection_items.*,@redirection_groups.tracking FROM @redirection_items INNER JOIN @redirection_groups ON @redirection_groups.id=@redirection_items.group_id AND @redirection_groups.status='enabled' AND @redirection_groups.module_id='$module' WHERE @redirection_items.status='enabled' ORDER BY @redirection_groups.position,@redirection_items.position";
 		$sql = str_replace( '@', $wpdb->prefix, $sql );
 
 		$rows  = $wpdb->get_results( $sql );
@@ -131,13 +131,13 @@ class Red_Item {
 	static function get_by_group( $group, &$pager ) {
 		global $wpdb;
 
-		$sql = $wpdb->prepare( "FROM {$wpdb->prefix}redirection_items WHERE group_id=%d", $group );
+		$sql = $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}redirection_items WHERE group_id=%d", $group );
 
 		if ( $pager->search )
 			$sql .= $wpdb->prepare( ' AND url LIKE %s', '%'.like_escape( $pager->search ).'%' );
 
-		$pager->set_total( $wpdb->get_var( "SELECT COUNT(*) ".$sql ) );
-		$rows = $wpdb->get_results( "SELECT * ".$sql.' ORDER BY position'.$pager->to_limits() );
+		$rows = $wpdb->get_results( $sql.' ORDER BY position' );
+		$pager->set_total( $wpdb->get_var( $sql ) );
 
 		$items = array();
 		if ( count( $rows ) > 0 ) {
@@ -362,7 +362,7 @@ class Red_Item {
 			  $ip = $_SERVER['REMOTE_ADDR'];
 
 			$options = $redirection->get_options();
-			if ( isset( $options['expire_redirect'] ) && $options['expire_redirect'] >= 0 )
+			if ( $options['log_redirections'])
 				$log = RE_Log::create( $url, $target, $_SERVER['HTTP_USER_AGENT'], $ip, isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '', array( 'redirect_id' => $this->id, 'module_id' => $this->module_id, 'group_id' => $this->group_id) );
 		}
 	}

@@ -29,9 +29,6 @@ function brighten($hex, $add) {
 }
 
 header('Content-type: text/css');
-header('Pragma: cache');
-header('Cache-Control: max-age=86400, must-revalidate');
-header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 86400) . ' GMT');
 $default_color = 'ff4c54';
 $color = $default_color;
 if (!empty($_GET['c'])) {
@@ -50,7 +47,7 @@ a,
 .entry-title a:hover,
 .post .comments-link a:hover,
 #topmenu > li:hover > a,
-#topmenu li.current-menu-item > a,
+#topmenu li.current-menu-item a,
 #topmenu ul a:hover,
 .widget .post > h3 a:hover,
 .widget_g7_twitter .follow-us:hover,

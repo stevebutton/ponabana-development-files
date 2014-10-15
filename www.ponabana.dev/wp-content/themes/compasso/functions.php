@@ -62,10 +62,6 @@ define('G7_SOCIAL', serialize(array(
 	'zerply'
 )));
 
-if (!defined('G7_SHORTCODES')) {
-	define('G7_SHORTCODES', true);
-}
-
 
 /**
  * Sets up the content width
@@ -93,17 +89,16 @@ if (!function_exists('g7_option')) {
 	}
 }
 
-
+//allow html in author bio
+remove_filter('pre_user_description', 'wp_filter_kses');  
+add_filter( 'pre_user_description', 'wp_filter_post_kses' );
 require_once(PARENT_DIR . '/includes/ajax_action.php');
 require_once(PARENT_DIR . '/includes/aq_resizer.php');
+require_once(PARENT_DIR . '/includes/shortcodes/shortcodes.php');
+require_once(PARENT_DIR . '/includes/shortcodes/tinymce.php');
 require_once(PARENT_DIR . '/includes/options/options.php');
 require_once(PARENT_DIR . '/includes/metabox/metabox.php');
 require_once(PARENT_DIR . '/includes/widgets.php');
-
-if (G7_SHORTCODES) {
-	require_once(PARENT_DIR . '/includes/shortcodes/shortcodes.php');
-	require_once(PARENT_DIR . '/includes/shortcodes/tinymce.php');
-}
 
 
 /**
@@ -147,7 +142,7 @@ if (!function_exists('g7_scripts')) {
 		wp_enqueue_script('jquery', false, array(), false, true);
 		wp_enqueue_script('easing', PARENT_URL . '/js/jquery.easing.1.3.js', array('jquery'), false, true);
 		wp_enqueue_script('placeholder', PARENT_URL . '/js/jquery.placeholder.min.js', array('jquery'), false, true);
-		wp_enqueue_script('jquery-masonry2', PARENT_URL . '/js/jquery.masonry.min.js', array('jquery'), false, true);
+		wp_enqueue_script('masonry', PARENT_URL . '/js/jquery.masonry.min.js', array('jquery'), false, true);
 		wp_enqueue_script('fitvids', PARENT_URL . '/js/jquery.fitvids.js', array('jquery'), false, true);
 		if (is_front_page() && g7_option('slider')) {
 			wp_enqueue_script('flex', PARENT_URL . '/js/jquery.flexslider-min.js', array('jquery'), false, true);
@@ -408,14 +403,14 @@ if (!function_exists('g7_share')) {
 if (!function_exists('g7_page_layout')) {
 	function g7_page_layout() {
 		$default_layout = g7_option('layout', 1);
-		if (is_page() || is_single()) {
-			$layout = get_post_meta(get_the_ID(), '_g7_layout', true);
-			if (empty($layout)) {
-				return $default_layout;
-			}
-			return $layout;
+		if (!is_page()) {
+			return $default_layout;
 		}
-		return $default_layout;
+		$layout = get_post_meta(get_the_ID(), '_g7_layout', true);
+		if (empty($layout)) {
+			return $default_layout;
+		}
+		return $layout;
 	}
 }
 

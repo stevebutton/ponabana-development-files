@@ -1,13 +1,3 @@
-<?php
-	// Exit if accessed directly
-	if (! defined('DUPLICATOR_INIT')) {
-		$_baseURL =  strlen($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : $_SERVER['HTTP_HOST'];
-		$_baseURL =  "http://" . $_baseURL;
-		header("HTTP/1.1 301 Moved Permanently");
-		header("Location: $_baseURL");
-		exit; 
-	}
-?>
 <style>
 	body {font-family: "Open Sans",sans-serif;}
 	body,td,th {font-size:13px;color:#000;}
@@ -72,7 +62,7 @@
 	table.dup-step1-inputs {width: 100%; border: 0px;}
 	table.dup-step1-inputs td{white-space:nowrap; padding:2px;}
 	table.dup-step1-inputs td:first-child{width:125px}
-	div.dup-step1-modes {padding:0px 15px 0px 0px;}
+	div.dup-step1-modes {padding:0px 15px 0px 0px; float:left}
 	div#dup-step1-dbconn {margin:auto; text-align:center; margin:15px 0px 20px 0px}
 	input#dup-step1-dbconn-btn {font-size:11px; height:20px; border:1px solid gray; border-radius:3px; cursor:pointer}
 	div.dup-db-test label{display: inline-block; width: 150px; font-weight: bold; white-space: nowrap}

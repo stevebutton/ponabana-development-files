@@ -41,7 +41,6 @@ jQuery(function($) {
     });
 
     // DWQA Vote Function=========================================================================
-    var update_vote = false;
     $('.dwqa-vote .dwqa-vote-dwqa-btn').on('click', function(event) {
         event.preventDefault();
         var t = $(this),
@@ -52,10 +51,7 @@ jQuery(function($) {
 
         if (type == 'question') {
             question_id = parent.data('question');
-            if( update_vote ) {
-                update_vote.abort();
-            }
-            update_vote = $.ajax({
+            $.ajax({
                 url: dwqa.ajax_url,
                 type: 'POST',
                 dataType: 'json',
@@ -67,9 +63,6 @@ jQuery(function($) {
                     type: vote
                 }
             })
-                .always( function(resp) {
-                    update_vote = false;
-                })
                 .done(function(resp) {
                     if (resp.success) {
                         parent.find('.dwqa-vote-count').text(resp.data.vote);
@@ -77,10 +70,8 @@ jQuery(function($) {
                 });
         } else if (type == 'answer') {
             answer_id = parent.data('answer');
-            if( update_vote ) {
-                update_vote.abort();
-            }
-            update_vote = $.ajax({
+
+            $.ajax({
                 url: dwqa.ajax_url,
                 type: 'POST',
                 dataType: 'json',
@@ -92,9 +83,6 @@ jQuery(function($) {
                     type: vote
                 }
             })
-                .always( function(resp) {
-                    update_vote = false;
-                })
                 .done(function(resp) {
                     if (resp.success) {
                         parent.find('.dwqa-vote-count').text(resp.data.vote);
@@ -165,7 +153,18 @@ jQuery(function($) {
             url = '';
 
         if (!dwqa.is_logged_in) {
-            
+            if (t.find('[name="author"]').length > 0) {
+                name = t.find('[name="author"]').val();
+                if (name.length <= 0) {
+                    if (t.parent().find('.name-error').length > 0) {
+                        t.parent().find('.name-error').text(dwqa.error_valid_name).fadeIn();
+                    } else {
+                        t.before('<div class="alert alert-error name-error">' + dwqa.error_valid_name + '</div>');
+                    }
+                } else {
+                    t.parent().find('.name-error').remove();
+                }
+            }
 
             if ($(this).find('[name="email"]').length > 0) {
                 email = $(this).find('[name="email"]').val();
@@ -181,22 +180,6 @@ jQuery(function($) {
                 } else {
                     t.parent().find('.email-error').remove();
                 }
-            }
-
-            if (t.find('[name="author"]').length > 0) {
-                name = t.find('[name="author"]').val();
-                if (name.length <= 0) {
-                    if (t.parent().find('.name-error').length > 0) {
-                        t.parent().find('.name-error').text(dwqa.error_valid_name).fadeIn();
-                    } else {
-                        t.before('<div class="alert alert-error name-error">' + dwqa.error_valid_name + '</div>');
-                    }
-                } else {
-                    t.parent().find('.name-error').remove();
-                }
-            } else {
-                var email_split = email.split('@');
-                name = email_split[0];
             }
 
             if (!name || !email) {
@@ -474,6 +457,8 @@ jQuery(function($) {
             answer_container = t.closest('.dwqa-answer'),
             answer_content = answer_container.find('.dwqa-content'),
             current_content = answer_content.html().trim();
+
+
         if (t.data('on-editor')) {
             answer_editor.slideDown();
             remove_editor();
@@ -519,13 +504,10 @@ jQuery(function($) {
 
                 settings.elements = id;
                 settings.body_class = id + ' post-type-dwqa-answer';
-                //settings.editor_selector = id; // deprecated in TinyMCE 4.x
+                settings.editor_selector = id; // deprecated in TinyMCE 4.x
                 settings.selector = '#' + id;
                 //init tinymce
-                if( tinyMCE.get(id) ) {
-                    tinymce.remove('#'+id);   
-                }
-                tinyMCE.init(settings);
+                tinymce.init(settings);
                 editor.slideDown();
                 t.data('on-editor', true);
             }
@@ -705,7 +687,7 @@ jQuery(function($) {
             nonce = privacy.data('nonce');
         privacy.find('.dwqa-change-privacy ul li').removeClass('current');
         privacy.find('[name="privacy"]').val(status);
-        privacy.find('.dropdown-toggle span').html(t.find('a').html());
+        privacy.find('.dwqa-current-privacy').html(t.find('a').html());
         t.addClass('current');
 
         if (privacy.data('type') == 'question' || privacy.data('type') == 'answer') {
@@ -861,7 +843,6 @@ jQuery(function($) {
             if (!current_answer_editor) {
                 return false;
             }
-            question.removeClass('dwpa-edit');
             current_answer_editor.find('.dwqa-content').html(unescape($('#dwqa-custom-content-editor').data('current-content')));
             t.data('on-editor', '');
             current_answer_editor = null;
@@ -898,6 +879,7 @@ jQuery(function($) {
                     var editor = $(unescape(resp.data.editor)),
                         id = 'dwqa-custom-content-editor';
                     editor.hide();
+
                     question.find('.dwqa-title').data('old', question.find('.dwqa-title').text()).html('');
                     question_content.html(editor);
                     $('#' + id).data('current-content', escape(old_content));
@@ -910,14 +892,9 @@ jQuery(function($) {
                     settings.editor_selector = id; // deprecated in TinyMCE 4.x
                     settings.selector = '#' + id;
                     //init tinymce
-                    if( tinyMCE.get(id) ) {
-                        tinymce.remove('#'+id);   
-                    }
-                    tinyMCE.init(settings);
+                    tinymce.init(settings);
                     editor.slideDown();
                     t.data('on-editor', true);
-
-                    question.addClass('dwpa-edit');
 
                     //Question : Cancel Edit
                     editor.find('.question-edit-cancel').bind('click', function(event) {
@@ -936,21 +913,23 @@ jQuery(function($) {
         event.preventDefault();
         var t = $(this),
             parent = t.parent();
-        $.ajax({
-            url: dwqa.ajax_url,
-            type: 'POST',
-            dataType: 'json',
-            data: {
-                action: 'dwqa-update-question-status',
-                status: t.data('status'),
-                nonce: parent.data('nonce'),
-                question: parent.data('question')
+        if (window.confirm('Are you sure about that change?')) {
+            $.ajax({
+                url: dwqa.ajax_url,
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    action: 'dwqa-update-question-status',
+                    status: t.data('status'),
+                    nonce: parent.data('nonce'),
+                    question: parent.data('question')
 
-            },
-            complete: function(xhr, textStatus) {
-                window.location.reload();
-            },
-        });
+                },
+                complete: function(xhr, textStatus) {
+                    window.location.reload();
+                },
+            });
+        }
     });
 
     // Question : Sticky =========================================================================+

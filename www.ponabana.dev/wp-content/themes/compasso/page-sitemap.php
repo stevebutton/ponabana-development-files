@@ -12,7 +12,7 @@ get_header();
 	<?php endwhile; ?>
 
 	<div class="box mb20">
-		<?php if (!empty($custom['_g7_sitemap_pages'][0])) : ?>
+		<?php if ($custom['_g7_sitemap_pages'][0]) : ?>
 		<h3><?php echo $custom['_g7_sitemap_pages_title'][0]; ?></h3>
 		<ul>
 			<?php wp_list_pages('title_li=&depth=0'); ?>
@@ -20,7 +20,7 @@ get_header();
 		<?php endif; ?>
 
 
-		<?php if (!empty($custom['_g7_sitemap_categories'][0])) : ?>
+		<?php if ($custom['_g7_sitemap_categories'][0]) : ?>
 		<h3><?php echo $custom['_g7_sitemap_categories_title'][0]; ?></h3>
 		<ul>
 			<?php wp_list_categories('sort_column=name&optioncount=0&hierarchical=1&title_li='); ?>
@@ -28,7 +28,7 @@ get_header();
 		<?php endif; ?>
 
 
-		<?php if (!empty($custom['_g7_sitemap_month'][0])) : ?>
+		<?php if ($custom['_g7_sitemap_month'][0]) : ?>
 		<h3><?php echo $custom['_g7_sitemap_month_title'][0]; ?></h3>
 		<ul>
 			<?php wp_get_archives('type=monthly'); ?>
@@ -36,7 +36,7 @@ get_header();
 		<?php endif; ?>
 
 
-		<?php if (!empty($custom['_g7_sitemap_posts'][0])) : ?>
+		<?php if ($custom['_g7_sitemap_posts'][0]) : ?>
 		<h3><?php echo $custom['_g7_sitemap_posts_title'][0]; ?></h3>
 		<ul>
 			<?php

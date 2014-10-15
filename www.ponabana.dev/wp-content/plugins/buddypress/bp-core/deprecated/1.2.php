@@ -1,10 +1,4 @@
 <?php
-/**
- * Deprecated Functions
- *
- * @package BuddyPress
- * @subpackage Core
- */
 
 /**
  * Retrieve sitewide activity

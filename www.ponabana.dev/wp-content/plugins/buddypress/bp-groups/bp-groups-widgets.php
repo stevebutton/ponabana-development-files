@@ -19,6 +19,10 @@ add_action( 'bp_register_widgets', 'groups_register_widgets' );
 /*** GROUPS WIDGET *****************/
 
 class BP_Groups_Widget extends WP_Widget {
+	function bp_groups_widget() {
+		$this->_construct();
+	}
+
 	function __construct() {
 		$widget_ops = array(
 			'description' => __( 'A dynamic list of recently active, popular, and newest groups', 'buddypress' ),
@@ -28,17 +32,8 @@ class BP_Groups_Widget extends WP_Widget {
 
 		if ( is_active_widget( false, false, $this->id_base ) && !is_admin() && !is_network_admin() ) {
 			$min = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
-			wp_enqueue_script( 'groups_widget_groups_list-js', buddypress()->plugin_url . "bp-groups/js/widget-groups{$min}.js", array( 'jquery' ), bp_get_version() );
+			wp_enqueue_script( 'groups_widget_groups_list-js', BP_PLUGIN_URL . "bp-groups/js/widget-groups{$min}.js", array( 'jquery' ), bp_get_version() );
 		}
-	}
-
-	/**
-	 * PHP4 constructor
-	 *
-	 * For backward compatibility only
-	 */
-	function bp_groups_widget() {
-		$this->_construct();
 	}
 
 	function widget( $args, $instance ) {
@@ -58,18 +53,9 @@ class BP_Groups_Widget extends WP_Widget {
 
 		$title = !empty( $instance['link_title'] ) ? '<a href="' . trailingslashit( bp_get_root_domain() . '/' . bp_get_groups_root_slug() ) . '">' . $title . '</a>' : $title;
 
-		echo $before_title . $title . $after_title;
+		echo $before_title . $title . $after_title; ?>
 
-		$group_args = array(
-			'user_id'         => $user_id,
-			'type'            => $instance['group_default'],
-			'per_page'        => $instance['max_groups'],
-			'max'             => $instance['max_groups'],
-		);
-
-		?>
-
-		<?php if ( bp_has_groups( $group_args ) ) : ?>
+		<?php if ( bp_has_groups( 'user_id=' . $user_id . '&type=' . $instance['group_default'] . '&max=' . $instance['max_groups'] ) ) : ?>
 			<div class="item-options" id="groups-list-options">
 				<a href="<?php bp_groups_directory_permalink(); ?>" id="newest-groups"<?php if ( $instance['group_default'] == 'newest' ) : ?> class="selected"<?php endif; ?>><?php _e("Newest", 'buddypress') ?></a> |
 				<a href="<?php bp_groups_directory_permalink(); ?>" id="recently-active-groups"<?php if ( $instance['group_default'] == 'active' ) : ?> class="selected"<?php endif; ?>><?php _e("Active", 'buddypress') ?></a> |
@@ -78,7 +64,7 @@ class BP_Groups_Widget extends WP_Widget {
 
 			<ul id="groups-list" class="item-list">
 				<?php while ( bp_groups() ) : bp_the_group(); ?>
-					<li <?php bp_group_class(); ?>>
+					<li>
 						<div class="item-avatar">
 							<a href="<?php bp_group_permalink() ?>" title="<?php bp_group_name() ?>"><?php bp_group_avatar_thumb() ?></a>
 						</div>
@@ -178,19 +164,10 @@ function groups_ajax_widget_groups_list() {
 		break;
 	}
 
-	$per_page = isset( $_POST['max_groups'] ) ? intval( $_POST['max_groups'] ) : 5;
-
-	$groups_args = array(
-		'user_id'  => 0,
-		'type'     => $type,
-		'per_page' => $per_page,
-		'max'      => $per_page,
-	);
-
-	if ( bp_has_groups( $groups_args ) ) : ?>
+	if ( bp_has_groups( 'type=' . $type . '&per_page=' . $_POST['max_groups'] . '&max=' . $_POST['max_groups'] ) ) : ?>
 		<?php echo "0[[SPLIT]]"; ?>
 		<?php while ( bp_groups() ) : bp_the_group(); ?>
-			<li <?php bp_group_class(); ?>>
+			<li>
 				<div class="item-avatar">
 					<a href="<?php bp_group_permalink() ?>"><?php bp_group_avatar_thumb() ?></a>
 				</div>

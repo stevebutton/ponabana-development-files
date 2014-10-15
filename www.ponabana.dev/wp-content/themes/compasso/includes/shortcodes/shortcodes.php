@@ -4,14 +4,14 @@ add_filter('widget_text', 'do_shortcode');
 /**
  * Clean up Shortcodes
  */
-function g7_clean_shortcodes($content) {
-	$array = array (
-		'<p>[' => '[',
-		']</p>' => ']',
-		']<br />' => ']'
-	);
-	$content = strtr($content, $array);
-	return $content;
+function g7_clean_shortcodes($content){
+    $array = array (
+        '<p>[' => '[',
+        ']</p>' => ']',
+        ']<br />' => ']'
+    );
+    $content = strtr($content, $array);
+    return $content;
 }
 add_filter('the_content', 'g7_clean_shortcodes');
 
@@ -23,17 +23,15 @@ function g7_button($atts, $content = null) {
 		array(
 			'color' => 'white',
 			'size' => 'small',
-			'link' => '',
-			'target' => ''
+			'link' => ''
 		),
 		$atts
 	);
 	return sprintf(
-		'<a class="btn %s %s" href="%s"%s>%s</a>',
+		'<a class="btn %s %s" href="%s">%s</a>',
 		$atts['color'],
 		$atts['size'],
 		$atts['link'],
-		$atts['target'] ? ' target="' . $atts['target'] . '"': '',
 		$content
 	);
 }
@@ -249,21 +247,17 @@ function g7_social($atts, $content = null) {
 		array(
 			'type' => '',
 			'link' => '',
-			'size' => '16',
-			'target' => ''
+			'size' => '16'
 		),
 		$atts
 	);
 	return sprintf(
-		'<a class="social" href="%s"%s><img src="%s/images/social/%spx/%s.png" alt="%s" width="%s" height="%s"></a>',
+		'<a class="social" href="%s"><img src="%s/images/social/%spx/%s.png" alt="%s"></a>',
 		$atts['link'],
-		$atts['target'] ? ' target="' . $atts['target'] . '"': '',
 		PARENT_URL,
 		$atts['size'],
 		$atts['type'],
-		$atts['type'],
-		$atts['size'],
-		$atts['size']
+		$atts['type']
 	);
 }
 

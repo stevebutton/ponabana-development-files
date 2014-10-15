@@ -1,10 +1,10 @@
 <?php
 /**
- * BuddyPress Moderation Functions.
+ * BuddyPress Moderation Functions
  *
  * @package BuddyPress
  * @subpackage Core
- * @since BuddyPress (1.6.0)
+ * @since BuddyPress (1.6)
  */
 
 // Exit if accessed directly
@@ -13,20 +13,18 @@ if ( !defined( 'ABSPATH' ) ) exit;
 /** Moderation ****************************************************************/
 
 /**
- * Check for flooding.
+ * Check for flooding
  *
  * Check to make sure that a user is not making too many posts in a short amount
  * of time.
  *
- * @since BuddyPress (1.6.0)
- *
- * @uses current_user_can() To check if the current user can throttle.
- * @uses bp_get_option() To get the throttle time.
- * @uses get_transient() To get the last posted transient of the ip.
- * @uses get_user_meta() To get the last posted meta of the user.
- *
- * @param int $user_id User id to check for flood.
- * @return bool True if there is no flooding, false if there is.
+ * @param int $user_id User id to check for flood
+ * @return bool True if there is no flooding, true if there is
+ * @since BuddyPress (1.6)
+ * @uses current_user_can() To check if the current user can throttle
+ * @uses bp_get_option() To get the throttle time
+ * @uses get_transient() To get the last posted transient of the ip
+ * @uses get_user_meta() To get the last posted meta of the user
  */
 function bp_core_check_for_flood( $user_id = 0 ) {
 
@@ -46,18 +44,16 @@ function bp_core_check_for_flood( $user_id = 0 ) {
 }
 
 /**
- * Check for moderation keys and too many links.
+ * Check for moderation keys and too many links
  *
- * @since BuddyPress (1.6.0)
- *
- * @uses bp_current_author_ip() To get current user IP address.
- * @uses bp_current_author_ua() To get current user agent.
- * @uses bp_current_user_can() Allow super admins to bypass blacklist.
- *
- * @param int $user_id Topic or reply author ID.
- * @param string $title The title of the content.
- * @param string $content The content being posted.
- * @return bool True if test is passed, false if fail.
+ * @param int $user_id Topic or reply author ID
+ * @param string $title The title of the content
+ * @param string $content The content being posted
+ * @return bool True if test is passed, false if fail
+ * @since BuddyPress (1.6)
+ * @uses bp_current_author_ip() To get current user IP address
+ * @uses bp_current_author_ua() To get current user agent
+ * @uses bp_current_user_can() Allow super admins to bypass blacklist
  */
 function bp_core_check_for_moderation( $user_id = 0, $title = '', $content = '' ) {
 
@@ -154,18 +150,16 @@ function bp_core_check_for_moderation( $user_id = 0, $title = '', $content = '' 
 }
 
 /**
- * Check for blocked keys.
+ * Checks for blocked keys
  *
- * @since BuddyPress (1.6.0)
- *
- * @uses bp_current_author_ip() To get current user IP address.
- * @uses bp_current_author_ua() To get current user agent.
- * @uses bp_current_user_can() Allow super admins to bypass blacklist.
- *
- * @param int $user_id Topic or reply author ID.
- * @param string $title The title of the content.
- * @param string $content The content being posted.
- * @return bool True if test is passed, false if fail.
+ * @param int $user_id Topic or reply author ID
+ * @param string $title The title of the content
+ * @param string $content The content being posted
+ * @return bool True if test is passed, false if fail
+ * @uses bp_current_author_ip() To get current user IP address
+ * @uses bp_current_author_ua() To get current user agent
+ * @uses bp_current_user_can() Allow super admins to bypass blacklist
+ * @since BuddyPress (1.6)
  */
 function bp_core_check_for_blacklist( $user_id = 0, $title = '', $content = '' ) {
 
@@ -244,11 +238,10 @@ function bp_core_check_for_blacklist( $user_id = 0, $title = '', $content = '' )
 }
 
 /**
- * Get the current user's IP address.
+ * Get the current-user IP address
  *
- * @since BuddyPress (1.6.0)
- *
- * @return string IP address.
+ * @return string
+ * @since BuddyPress (1.6)
  */
 function bp_core_current_user_ip() {
 	$retval = preg_replace( '/[^0-9a-fA-F:., ]/', '', $_SERVER['REMOTE_ADDR'] );
@@ -257,11 +250,10 @@ function bp_core_current_user_ip() {
 }
 
 /**
- * Get the current user's user-agent.
+ * Get the current-user user-agent
  *
- * @since BuddyPress (1.6.0)
- *
- * @return string User agent string.
+ * @return string
+ * @since BuddyPress (1.6)
  */
 function bp_core_current_user_ua() {
 

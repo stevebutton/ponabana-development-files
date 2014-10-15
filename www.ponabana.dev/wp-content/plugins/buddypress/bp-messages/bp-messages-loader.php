@@ -12,11 +12,6 @@
 // Exit if accessed directly
 if ( !defined( 'ABSPATH' ) ) exit;
 
-/**
- * Implementation of BP_Component for the Messages component.
- *
- * @since BuddyPress (1.5.0)
- */
 class BP_Messages_Component extends BP_Component {
 	/**
 	 * If this is true, the Message autocomplete will return friends only, unless
@@ -28,30 +23,22 @@ class BP_Messages_Component extends BP_Component {
 	public $autocomplete_all;
 
 	/**
-	 * Start the messages component creation process.
+	 * Start the messages component creation process
 	 *
-	 * @since BuddyPress (1.5.0)
+	 * @since BuddyPress (1.5)
 	 */
-	public function __construct() {
+	function __construct() {
 		parent::start(
 			'messages',
 			__( 'Private Messages', 'buddypress' ),
-			buddypress()->plugin_dir,
-			array(
-				'adminbar_myaccount_order' => 50
-			)
+			BP_PLUGIN_DIR
 		);
 	}
 
 	/**
-	 * Include files.
-	 *
-	 * @since BuddyPress (1.5.0)
-	 *
-	 * @param array $includes See {BP_Component::includes()} for details.
+	 * Include files
 	 */
 	public function includes( $includes = array() ) {
-
 		// Files to include
 		$includes = array(
 			'cssjs',
@@ -62,25 +49,23 @@ class BP_Messages_Component extends BP_Component {
 			'filters',
 			'template',
 			'functions',
-			'notifications',
-			'widgets',
+			'notifications'
 		);
 
 		parent::includes( $includes );
 	}
 
 	/**
-	 * Set up globals for the Messages component.
+	 * Setup globals
 	 *
 	 * The BP_MESSAGES_SLUG constant is deprecated, and only used here for
 	 * backwards compatibility.
 	 *
-	 * @since BuddyPress (1.5.0)
-	 *
-	 * @param array $args Not used.
+	 * @since BuddyPress (1.5)
+	 * @global BuddyPress $bp The one true BuddyPress instance
 	 */
 	public function setup_globals( $args = array() ) {
-		$bp = buddypress();
+		global $bp;
 
 		// Define a slug, if necessary
 		if ( !defined( 'BP_MESSAGES_SLUG' ) )
@@ -109,25 +94,18 @@ class BP_Messages_Component extends BP_Component {
 	}
 
 	/**
-	 * Set up navigation for user pages.
+	 * Setup BuddyBar navigation
 	 *
-	 * @param array $main_nav See {BP_Component::setup_nav()} for details.
-	 * @param array $sub_nav See {BP_Component::setup_nav()} for details.
+	 * @global BuddyPress $bp The one true BuddyPress instance
 	 */
 	public function setup_nav( $main_nav = array(), $sub_nav = array() ) {
 
-		// Only grab count if we're on a user page and current user has access
-		if ( bp_is_user() && bp_user_has_access() ) {
-			$count    = bp_get_total_unread_messages_count();
-			$class    = ( 0 === $count ) ? 'no-count' : 'count';
-			$nav_name = sprintf( __( 'Messages <span class="%s">%s</span>', 'buddypress' ), esc_attr( $class ), number_format_i18n( $count ) );
-		} else {
-			$nav_name = __( 'Messages', 'buddypress' );
-		}
+		$sub_nav = array();
+		$name    = sprintf( __( 'Messages <span>%s</span>', 'buddypress' ), bp_get_total_unread_messages_count() );
 
 		// Add 'Messages' to the main navigation
 		$main_nav = array(
-			'name'                    => $nav_name,
+			'name'                    => $name,
 			'slug'                    => $this->slug,
 			'position'                => 50,
 			'show_for_displayed_user' => false,
@@ -195,13 +173,15 @@ class BP_Messages_Component extends BP_Component {
 	}
 
 	/**
-	 * Set up the Toolbar.
+	 * Set up the Toolbar
 	 *
-	 * @param array $wp_admin_nav See {BP_Component::setup_admin_bar()}
-	 *        for details.
+	 * @global BuddyPress $bp The one true BuddyPress instance
 	 */
 	public function setup_admin_bar( $wp_admin_nav = array() ) {
-		$bp = buddypress();
+		global $bp;
+
+		// Prevent debug notices
+		$wp_admin_nav = array();
 
 		// Menus for logged in user
 		if ( is_user_logged_in() ) {
@@ -267,10 +247,12 @@ class BP_Messages_Component extends BP_Component {
 	}
 
 	/**
-	 * Set up the title for pages and <title>.
+	 * Sets up the title for pages and <title>
+	 *
+	 * @global BuddyPress $bp The one true BuddyPress instance
 	 */
-	public function setup_title() {
-		$bp = buddypress();
+	function setup_title() {
+		global $bp;
 
 		if ( bp_is_messages_component() ) {
 			if ( bp_is_my_profile() ) {
@@ -289,10 +271,8 @@ class BP_Messages_Component extends BP_Component {
 	}
 }
 
-/**
- * Bootstrap the Messages component.
- */
 function bp_setup_messages() {
-	buddypress()->messages = new BP_Messages_Component();
+	global $bp;
+	$bp->messages = new BP_Messages_Component();
 }
 add_action( 'bp_setup_components', 'bp_setup_messages', 6 );

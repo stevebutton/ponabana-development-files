@@ -1,7 +1,8 @@
 <?php
-
 /**
  * BuddyPress Member Loader
+ *
+ * A members component to help contain all of the user specific slugs
  *
  * @package BuddyPress
  * @subpackage Members
@@ -13,93 +14,66 @@ if ( !defined( 'ABSPATH' ) ) exit;
 class BP_Members_Component extends BP_Component {
 
 	/**
-	 * Start the members component creation process.
+	 * Start the members component creation process
 	 *
-	 * @since BuddyPress (1.5.0)
+	 * @since BuddyPress (1.5)
 	 */
-	public function __construct() {
+	function __construct() {
 		parent::start(
 			'members',
 			__( 'Members', 'buddypress' ),
-			buddypress()->plugin_dir,
-			array(
-				'adminbar_myaccount_order' => 20
-			)
+			BP_PLUGIN_DIR
 		);
 	}
 
 	/**
-	 * Include bp-members files.
+	 * Include files
 	 *
-	 * @see BP_Component::includes() for description of parameters.
-	 *
-	 * @param array $includes See {@link BP_Component::includes()}.
+	 * @global BuddyPress $bp The one true BuddyPress instance
 	 */
 	public function includes( $includes = array() ) {
-
-		// Always include these files
 		$includes = array(
 			'actions',
-			'classes',
 			'filters',
 			'screens',
 			'template',
+			'buddybar',
 			'adminbar',
-			'functions'
+			'functions',
+			'notifications',
 		);
-
-		// Include these only if in admin
-		if ( is_admin() ) {
-			$includes[] = 'admin';
-		}
-
 		parent::includes( $includes );
 	}
 
 	/**
-	 * Set up bp-members global settings.
+	 * Setup globals
 	 *
 	 * The BP_MEMBERS_SLUG constant is deprecated, and only used here for
 	 * backwards compatibility.
 	 *
-	 * @since BuddyPress (1.5.0)
-	 *
-	 * @see BP_Component::setup_globals() for description of parameters.
-	 *
-	 * @param array $args See {@link BP_Component::setup_globals()}.
+	 * @since BuddyPress (1.5)
+	 * @global BuddyPress $bp The one true BuddyPress instance
 	 */
 	public function setup_globals( $args = array() ) {
-		$bp = buddypress();
+		global $bp;
 
-		/** Component Globals *************************************************/
-
-		// Define a slug, as a fallback for backpat
-		if ( !defined( 'BP_MEMBERS_SLUG' ) ) {
+		// Define a slug, if necessary
+		if ( !defined( 'BP_MEMBERS_SLUG' ) )
 			define( 'BP_MEMBERS_SLUG', $this->id );
-		}
 
-		// Override any passed args
-		$args = array(
-			'slug'            => BP_MEMBERS_SLUG,
-			'root_slug'       => isset( $bp->pages->members->slug ) ? $bp->pages->members->slug : BP_MEMBERS_SLUG,
-			'has_directory'   => true,
-			'directory_title' => _x( 'Members', 'component directory title', 'buddypress' ),
-			'search_string'   => __( 'Search Members...', 'buddypress' ),
-			'global_tables'   => array(
-				'table_name_last_activity' => bp_core_get_table_prefix() . 'bp_activity',
-				'table_name_signups'       => bp_core_get_table_prefix() . 'signups',
-			)
+		$globals = array(
+			'slug'          => BP_MEMBERS_SLUG,
+			'root_slug'     => isset( $bp->pages->members->slug ) ? $bp->pages->members->slug : BP_MEMBERS_SLUG,
+			'has_directory' => true,
+			'search_string' => __( 'Search Members...', 'buddypress' ),
 		);
 
-		parent::setup_globals( $args );
+		parent::setup_globals( $globals );
 
 		/** Logged in user ****************************************************/
 
-		// The core userdata of the user who is currently logged in.
-		$bp->loggedin_user->userdata       = bp_core_get_core_userdata( bp_loggedin_user_id() );
-
 		// Fetch the full name for the logged in user
-		$bp->loggedin_user->fullname       = isset( $bp->loggedin_user->userdata->display_name ) ? $bp->loggedin_user->userdata->display_name : '';
+		$bp->loggedin_user->fullname       = bp_core_get_user_displayname( bp_loggedin_user_id() );
 
 		// Hits the DB on single WP installs so get this separately
 		$bp->loggedin_user->is_super_admin = $bp->loggedin_user->is_site_admin = is_super_admin( bp_loggedin_user_id() );
@@ -107,20 +81,19 @@ class BP_Members_Component extends BP_Component {
 		// The domain for the user currently logged in. eg: http://domain.com/members/andy
 		$bp->loggedin_user->domain         = bp_core_get_user_domain( bp_loggedin_user_id() );
 
+		// The core userdata of the user who is currently logged in.
+		$bp->loggedin_user->userdata       = bp_core_get_core_userdata( bp_loggedin_user_id() );
+
 		/** Displayed user ****************************************************/
+
+		// The domain for the user currently being displayed
+		$bp->displayed_user->domain   = bp_core_get_user_domain( bp_displayed_user_id() );
 
 		// The core userdata of the user who is currently being displayed
 		$bp->displayed_user->userdata = bp_core_get_core_userdata( bp_displayed_user_id() );
 
 		// Fetch the full name displayed user
-		$bp->displayed_user->fullname = isset( $bp->displayed_user->userdata->display_name ) ? $bp->displayed_user->userdata->display_name : '';
-
-		// The domain for the user currently being displayed
-		$bp->displayed_user->domain   = bp_core_get_user_domain( bp_displayed_user_id() );
-
-		/** Signup ************************************************************/
-
-		$bp->signup = new stdClass;
+		$bp->displayed_user->fullname = bp_core_get_user_displayname( bp_displayed_user_id() );
 
 		/** Profiles Fallback *************************************************/
 
@@ -129,29 +102,17 @@ class BP_Members_Component extends BP_Component {
 			$bp->profile->slug = 'profile';
 			$bp->profile->id   = 'profile';
 		}
-	}
-
-	/**
-	 * Set up canonical stack for this component.
-	 *
-	 * @since BuddyPress (2.1.0)
-	 */
-	public function setup_canonical_stack() {
-		$bp = buddypress();
 
 		/** Default Profile Component *****************************************/
-
-		if ( defined( 'BP_DEFAULT_COMPONENT' ) && BP_DEFAULT_COMPONENT ) {
-			$bp->default_component = BP_DEFAULT_COMPONENT;
-		} else {
-			if ( bp_is_active( 'activity' ) && isset( $bp->pages->activity ) ) {
+		if ( !defined( 'BP_DEFAULT_COMPONENT' ) ) {
+			if ( bp_is_active( 'activity' ) && isset( $bp->pages->activity ) )
 				$bp->default_component = bp_get_activity_slug();
-			} else {
-				$bp->default_component = ( 'xprofile' === $bp->profile->id ) ? 'profile' : $bp->profile->id;
-			}
-		}
+			else
+				$bp->default_component = ( 'xprofile' == $bp->profile->id ) ? 'profile' : $bp->profile->id;
 
-		/** Canonical Component Stack *****************************************/
+		} else {
+			$bp->default_component = BP_DEFAULT_COMPONENT;
+		}
 
 		if ( bp_displayed_user_id() ) {
 			$bp->canonical_stack['base_url'] = bp_displayed_user_domain();
@@ -168,105 +129,83 @@ class BP_Members_Component extends BP_Component {
 				$bp->canonical_stack['action_variables'] = bp_action_variables();
 			}
 
-			// Looking at the single member root/home, so assume the default
-			if ( ! bp_current_component() ) {
+			if ( !bp_current_component() ) {
 				$bp->current_component = $bp->default_component;
-
-			// The canonical URL will not contain the default component
-			} elseif ( bp_is_current_component( $bp->default_component ) && ! bp_current_action() ) {
-				unset( $bp->canonical_stack['component'] );
-			}
-
-			// if we're on a spammer's profile page, only users with the 'bp_moderate' cap
-			// can view subpages on the spammer's profile
-			//
-			// users without the cap trying to access a spammer's subnav page will get
-			// redirected to the root of the spammer's profile page.  this occurs by
-			// by removing the component in the canonical stack.
-			if ( bp_is_user_spammer( bp_displayed_user_id() ) && ! bp_current_user_can( 'bp_moderate' ) ) {
+			} else if ( bp_is_current_component( $bp->default_component ) && !bp_current_action() ) {
+				// The canonical URL will not contain the default component
 				unset( $bp->canonical_stack['component'] );
 			}
 		}
 	}
 
 	/**
-	 * Set up fall-back component navigation if XProfile is inactive.
+	 * Setup BuddyBar navigation
 	 *
-	 * @since BuddyPress (1.5.0)
-	 *
-	 * @see BP_Component::setup_nav() for a description of arguments.
-	 *
-	 * @param array $main_nav Optional. See BP_Component::setup_nav() for
-	 *        description.
-	 * @param array $sub_nav Optional. See BP_Component::setup_nav() for
-	 *        description.
+	 * @global BuddyPress $bp The one true BuddyPress instance
 	 */
 	public function setup_nav( $main_nav = array(), $sub_nav = array() ) {
+		global $bp;
 
-		// Bail if XProfile component is active
-		if ( bp_is_active( 'xprofile' ) ) {
-			return;
+		// Add 'Profile' to the main navigation
+		if ( !bp_is_active( 'xprofile' ) ) {
+
+			// Don't set up navigation if there's no user
+			if ( !is_user_logged_in() && !bp_is_user() )
+				return;
+
+			$sub_nav  = array();
+			$main_nav = array(
+				'name'                => __( 'Profile', 'buddypress' ),
+				'slug'                => $bp->profile->slug,
+				'position'            => 20,
+				'screen_function'     => 'bp_members_screen_display_profile',
+				'default_subnav_slug' => 'public',
+				'item_css_id'         => $bp->profile->id
+			);
+
+			// User links
+			$user_domain   = bp_displayed_user_domain() ? bp_displayed_user_domain() : bp_loggedin_user_domain();
+			$profile_link  = trailingslashit( $user_domain . $bp->profile->slug );
+
+			// Add the subnav items to the profile
+			$sub_nav[] = array(
+				'name'            => __( 'View', 'buddypress' ),
+				'slug'            => 'public',
+				'parent_url'      => $profile_link,
+				'parent_slug'     => $bp->profile->slug,
+				'screen_function' => 'bp_members_screen_display_profile',
+				'position'        => 10
+			);
+
+			parent::setup_nav( $main_nav, $sub_nav );
 		}
-
-		// Don't set up navigation if there's no member
-		if ( ! is_user_logged_in() && ! bp_is_user() ) {
-			return;
-		}
-
-		$bp = buddypress();
-
-		// Setup the main navigation
-		$main_nav = array(
-			'name'                => _x( 'Profile', 'Member profile main navigation', 'buddypress' ),
-			'slug'                => $bp->profile->slug,
-			'position'            => 20,
-			'screen_function'     => 'bp_members_screen_display_profile',
-			'default_subnav_slug' => 'public',
-			'item_css_id'         => $bp->profile->id
-		);
-
-		// User links
-		$user_domain  = bp_displayed_user_domain() ? bp_displayed_user_domain() : bp_loggedin_user_domain();
-		$profile_link = trailingslashit( $user_domain . $bp->profile->slug );
-
-		// Setup the subnav items for the member profile
-		$sub_nav[] = array(
-			'name'            => _x( 'View', 'Member profile view', 'buddypress' ),
-			'slug'            => 'public',
-			'parent_url'      => $profile_link,
-			'parent_slug'     => $bp->profile->slug,
-			'screen_function' => 'bp_members_screen_display_profile',
-			'position'        => 10
-		);
-
-		parent::setup_nav( $main_nav, $sub_nav );
 	}
 
 	/**
-	 * Set up the title for pages and <title>.
+	 * Sets up the title for pages and <title>
+	 *
+	 * @global BuddyPress $bp The one true BuddyPress instance
 	 */
-	public function setup_title() {
-		$bp = buddypress();
+	function setup_title() {
+		global $bp;
 
 		if ( bp_is_my_profile() ) {
 			$bp->bp_options_title = __( 'You', 'buddypress' );
-		} elseif ( bp_is_user() ) {
-			$bp->bp_options_title  = bp_get_displayed_user_fullname();
+		} elseif( bp_is_user() ) {
 			$bp->bp_options_avatar = bp_core_fetch_avatar( array(
 				'item_id' => bp_displayed_user_id(),
 				'type'    => 'thumb',
-				'alt'     => sprintf( __( 'Profile picture of %s', 'buddypress' ), $bp->bp_options_title )
+				'alt'     => sprintf( __( 'Profile picture of %s', 'buddypress' ), bp_get_displayed_user_fullname() )
 			) );
+			$bp->bp_options_title = bp_get_displayed_user_fullname();
 		}
 
 		parent::setup_title();
 	}
 }
 
-/**
- * Set up the bp-members component.
- */
 function bp_setup_members() {
-	buddypress()->members = new BP_Members_Component();
+	global $bp;
+	$bp->members = new BP_Members_Component();
 }
 add_action( 'bp_setup_components', 'bp_setup_members', 1 );

@@ -74,16 +74,11 @@ add_action( bp_core_admin_hook(), 'bp_core_admin_backpat_menu', 999 );
  * @since BuddyPress (1.6)
  */
 function bp_core_modify_admin_menu_highlight() {
-	global $pagenow, $plugin_page, $submenu_file;
+	global $plugin_page, $submenu_file;
 
 	// This tweaks the Settings subnav menu to show only one BuddyPress menu item
 	if ( ! in_array( $plugin_page, array( 'bp-activity', 'bp-general-settings', ) ) )
 		$submenu_file = 'bp-components';
-
-	// Network Admin > Tools
-	if ( in_array( $plugin_page, array( 'bp-tools', 'available-tools' ) ) ) {
-		$submenu_file = $plugin_page;
-	}
 }
 
 /**
@@ -125,35 +120,27 @@ function bp_core_admin_backpat_page() {
  * @uses bp_is_root_blog()
  */
 function bp_core_print_admin_notices() {
+	$bp = buddypress();
 
 	// Only the super admin should see messages
-	if ( ! bp_current_user_can( 'bp_moderate' ) ) {
+	if ( !bp_current_user_can( 'bp_moderate' ) )
 		return;
-	}
 
-	// On multisite installs, don't show on a non-root blog, unless
-	// 'do_network_admin' is overridden.
-	if ( is_multisite() && bp_core_do_network_admin() && ! bp_is_root_blog() ) {
+	// On multisite installs, don't show on the Site Admin of a non-root blog, unless
+	// do_network_admin is overridden
+	if ( is_multisite() && bp_core_do_network_admin() && !bp_is_root_blog() )
 		return;
-	}
-
-	// Get the admin notices
-	$admin_notices = buddypress()->admin->notices;
 
 	// Show the messages
-	if ( !empty( $admin_notices ) ) : ?>
-
+	if ( !empty( $bp->admin->notices ) ) {
+		?>
 		<div id="message" class="updated fade">
-
-			<?php foreach ( $admin_notices as $notice ) : ?>
-
-				<p><?php echo $notice; ?></p>
-
-			<?php endforeach; ?>
-
+		<?php foreach ( $bp->admin->notices as $notice ) : ?>
+				<p><?php echo $notice ?></p>
+		<?php endforeach ?>
 		</div>
-
-	<?php endif;
+		<?php
+	}
 }
 add_action( 'admin_notices',         'bp_core_print_admin_notices' );
 add_action( 'network_admin_notices', 'bp_core_print_admin_notices' );
@@ -170,20 +157,14 @@ add_action( 'network_admin_notices', 'bp_core_print_admin_notices' );
  *
  * @param string $notice The notice you are adding to the queue
  */
-function bp_core_add_admin_notice( $notice = '' ) {
+function bp_core_add_admin_notice( $notice ) {
+	$bp = buddypress();
 
-	// Do not add if the notice is empty
-	if ( empty( $notice ) ) {
-		return;
+	if ( empty( $bp->admin->notices ) ) {
+		$bp->admin->notices = array();
 	}
 
-	// Double check the object before referencing it
-	if ( ! isset( buddypress()->admin->notices ) ) {
-		buddypress()->admin->notices = array();
-	}
-
-	// Add the notice
-	buddypress()->admin->notices[] = $notice;
+	$bp->admin->notices[] = $notice;
 }
 
 /**
@@ -200,35 +181,24 @@ function bp_core_add_admin_notice( $notice = '' ) {
  * @since BuddyPress (1.2)
  */
 function bp_core_activation_notice() {
-	global $wp_rewrite, $wpdb;
+	global $wpdb, $wp_rewrite;
+
+	$bp = buddypress();
 
 	// Only the super admin gets warnings
-	if ( ! bp_current_user_can( 'bp_moderate' ) ) {
+	if ( !bp_current_user_can( 'bp_moderate' ) )
 		return;
-	}
-
-	// Bail in user admin
-	if ( is_user_admin() ) {
-		return;
-	}
 
 	// On multisite installs, don't load on a non-root blog, unless do_network_admin is overridden
-	if ( is_multisite() && bp_core_do_network_admin() && ! bp_is_root_blog() ) {
+	if ( is_multisite() && bp_core_do_network_admin() && !bp_is_root_blog() )
 		return;
-	}
-
-	// Bail if in network admin, and BuddyPress is not network activated
-	if ( is_network_admin() && ! bp_is_network_activated() ) {
-		return;
-	}
 
 	/**
-	 * Check to make sure that the blog setup routine has run. This can't
-	 * happen during the wizard because of the order which the components
-	 * are loaded.
+	 * Check to make sure that the blog setup routine has run. This can't happen during the
+	 * wizard because of the order which the components are loaded. We check for multisite here
+	 * on the off chance that someone has activated the blogs component and then disabled MS
 	 */
 	if ( bp_is_active( 'blogs' ) ) {
-		$bp    = buddypress();
 		$count = $wpdb->get_var( "SELECT COUNT(*) FROM {$bp->blogs->table_name}" );
 
 		if ( empty( $count ) ) {
@@ -236,13 +206,15 @@ function bp_core_activation_notice() {
 		}
 	}
 
-	// Add notice if no rewrite rules are enabled
+	/**
+	 * Are pretty permalinks enabled?
+	 */
+	if ( isset( $_POST['permalink_structure'] ) )
+		return;
+
 	if ( empty( $wp_rewrite->permalink_structure ) ) {
 		bp_core_add_admin_notice( sprintf( __( '<strong>BuddyPress is almost ready</strong>. You must <a href="%s">update your permalink structure</a> to something other than the default for it to work.', 'buddypress' ), admin_url( 'options-permalink.php' ) ) );
 	}
-
-	// Get BuddyPress instance
-	$bp = buddypress();
 
 	/**
 	 * Check for orphaned BP components (BP component is enabled, no WP page exists)
@@ -275,9 +247,8 @@ function bp_core_activation_notice() {
 	}
 
 	// On the first admin screen after a new installation, this isn't set, so grab it to supress a misleading error message.
-	if ( empty( $bp->pages->members ) ) {
+	if ( empty( $bp->pages->members ) )
 		$bp->pages = bp_core_get_directory_pages();
-	}
 
 	foreach( $wp_page_components as $component ) {
 		if ( !isset( $bp->pages->{$component['id']} ) ) {
@@ -296,7 +267,7 @@ function bp_core_activation_notice() {
 
 	if ( !empty( $orphaned_components ) ) {
 		$admin_url = bp_get_admin_url( add_query_arg( array( 'page' => 'bp-page-settings' ), 'admin.php' ) );
-		$notice    = sprintf( __( 'The following active BuddyPress Components do not have associated WordPress Pages: %2$s. <a href="%1$s">Repair</a>', 'buddypress' ), $admin_url, '<strong>' . implode( '</strong>, <strong>', $orphaned_components ) . '</strong>' );
+		$notice    = sprintf( __( 'The following active BuddyPress Components do not have associated WordPress Pages: %2$s. <a href="%1$s" class="button-secondary">Repair</a>', 'buddypress' ), $admin_url, '<strong>' . implode( '</strong>, <strong>', $orphaned_components ) . '</strong>' );
 
 		bp_core_add_admin_notice( $notice );
 	}
@@ -318,7 +289,7 @@ function bp_core_activation_notice() {
 	// If there are duplicates, post a message about them
 	if ( !empty( $dupe_names ) ) {
 		$admin_url = bp_get_admin_url( add_query_arg( array( 'page' => 'bp-page-settings' ), 'admin.php' ) );
-		$notice    = sprintf( __( 'Each BuddyPress Component needs its own WordPress page. The following WordPress Pages have more than one component associated with them: %2$s. <a href="%1$s">Repair</a>', 'buddypress' ), $admin_url, '<strong>' . implode( '</strong>, <strong>', $dupe_names ) . '</strong>' );
+		$notice    = sprintf( __( 'Each BuddyPress Component needs its own WordPress page. The following WordPress Pages have more than one component associated with them: %2$s. <a href="%1$s" class="button-secondary">Repair</a>', 'buddypress' ), $admin_url, '<strong>' . implode( '</strong>, <strong>', $dupe_names ) . '</strong>' );
 
 		bp_core_add_admin_notice( $notice );
 	}
@@ -389,12 +360,11 @@ function bp_core_admin_tabs( $active_tab = '' ) {
 		'2' => array(
 			'href' => bp_get_admin_url( add_query_arg( array( 'page' => 'bp-settings' ), 'admin.php' ) ),
 			'name' => __( 'Settings', 'buddypress' )
-		),
+		)
 	);
 
 	// If forums component is active, add additional tab
 	if ( bp_is_active( 'forums' ) && class_exists( 'BP_Forums_Component' ) ) {
-
 		// enqueue thickbox
 		wp_enqueue_script( 'thickbox' );
 		wp_enqueue_style( 'thickbox' );
@@ -405,14 +375,11 @@ function bp_core_admin_tabs( $active_tab = '' ) {
 		);
 	}
 
-	// Allow the tabs to be filtered
-	$tabs = apply_filters( 'bp_core_admin_tabs', $tabs );
-
 	// Loop through tabs and build navigation
 	foreach ( array_values( $tabs ) as $tab_data ) {
 		$is_current = (bool) ( $tab_data['name'] == $active_tab );
 		$tab_class  = $is_current ? $active_class : $idle_class;
-		$tabs_html .= '<a href="' . esc_url( $tab_data['href'] ) . '" class="' . esc_attr( $tab_class ) . '">' . esc_html( $tab_data['name'] ) . '</a>';
+		$tabs_html .= '<a href="' . $tab_data['href'] . '" class="' . $tab_class . '">' . $tab_data['name'] . '</a>';
 	}
 
 	// Output the tabs
@@ -442,7 +409,7 @@ function bp_core_add_contextual_help( $screen = '' ) {
 			// help tabs
 			$screen->add_help_tab( array(
 				'id'      => 'bp-comp-overview',
-				'title'   => __( 'Overview', 'buddypress' ),
+				'title'   => __( 'Overview' ),
 				'content' => bp_core_add_contextual_help_content( 'bp-comp-overview' ),
 			) );
 
@@ -460,7 +427,7 @@ function bp_core_add_contextual_help( $screen = '' ) {
 			// Help tabs
 			$screen->add_help_tab( array(
 				'id' => 'bp-page-overview',
-				'title' => __( 'Overview', 'buddypress' ),
+				'title' => __( 'Overview' ),
 				'content' => bp_core_add_contextual_help_content( 'bp-page-overview' ),
 			) );
 
@@ -479,7 +446,7 @@ function bp_core_add_contextual_help( $screen = '' ) {
 			// Help tabs
 			$screen->add_help_tab( array(
 				'id'      => 'bp-settings-overview',
-				'title'   => __( 'Overview', 'buddypress' ),
+				'title'   => __( 'Overview' ),
 				'content' => bp_core_add_contextual_help_content( 'bp-settings-overview' ),
 			) );
 
@@ -493,12 +460,12 @@ function bp_core_add_contextual_help( $screen = '' ) {
 			break;
 
 		// Profile fields page
-		case 'users_page_bp-profile-setup' :
+		case 'users_page_bp-profile-overview' :
 
 			// Help tabs
 			$screen->add_help_tab( array(
 				'id'      => 'bp-profile-overview',
-				'title'   => __( 'Overview', 'buddypress' ),
+				'title'   => __( 'Overview' ),
 				'content' => bp_core_add_contextual_help_content( 'bp-profile-overview' ),
 			) );
 
@@ -523,32 +490,25 @@ function bp_core_add_contextual_help_content( $tab = '' ) {
 
 	switch ( $tab ) {
 		case 'bp-comp-overview' :
-			$retval = __( 'By default, all but four of the BuddyPress components are enabled. You can selectively enable or disable any of the components by using the form below. Your BuddyPress installation will continue to function. However, the features of the disabled components will no longer be accessible to anyone using the site.', 'buddypress' );
+			return '<p>' . __( 'By default, all BuddyPress components are enabled. You can selectively disable any of the components by using the form. Your BuddyPress installation will continue to function. However, the features of the disabled components will no longer be accessible to anyone using the site.', 'buddypress' ) . '</p>';
 			break;
 
-		case 'bp-page-overview' :
-			$retval = __( 'BuddyPress Components use WordPress Pages for their root directory/archive pages. You can change the page associations for each active component by using the form below.', 'buddypress' );
+		case'bp-page-overview' :
+			return '<p>' . __( 'BuddyPress Components use WordPress Pages for their root directory/archive pages. Here you can change the page associations for each active component.', 'buddypress' ) . '</p>';
 			break;
 
 		case 'bp-settings-overview' :
-			$retval = __( 'Extra configuration settings are provided and activated. You can selectively enable or disable any setting by using the form on this screen.', 'buddypress' );
+			return '<p>' . __( 'Extra configuration settings.', 'buddypress' ) . '</p>';
 			break;
 
 		case 'bp-profile-overview' :
-			$retval = __( 'Your users will distinguish themselves through their profile page. Create relevant profile fields that will show on each users profile.</br></br>Note: Any fields in the first group will appear on the signup page.', 'buddypress' );
+			return '<p>' . __( 'Your users will distinguish themselves through their profile page. Create relevant profile fields that will show on each users profile.</br></br>Note: Any fields in the first group will appear on the signup page.', 'buddypress' ) . '</p>';
 			break;
 
 		default:
-			$retval = false;
+			return false;
 			break;
 	}
-
-	// Wrap text in a paragraph tag
-	if ( !empty( $retval ) ) {
-		$retval = '<p>' . $retval . '</p>';
-	}
-
-	return $retval;
 }
 
 /** Separator *****************************************************************/
@@ -681,225 +641,4 @@ function bp_admin_list_table_current_bulk_action() {
 	}
 
 	return $action;
-}
-
-/** Menus *********************************************************************/
-
-/**
- * Register meta box and associated JS for BuddyPress WP Nav Menu .
- *
- * @since BuddyPress (1.9.0)
- */
-function bp_admin_wp_nav_menu_meta_box() {
-	if ( ! bp_is_root_blog() ) {
-		return;
-	}
-
-	add_meta_box( 'add-buddypress-nav-menu', __( 'BuddyPress', 'buddypress' ), 'bp_admin_do_wp_nav_menu_meta_box', 'nav-menus', 'side', 'default' );
-
-	add_action( 'admin_print_footer_scripts', 'bp_admin_wp_nav_menu_restrict_items' );
-}
-
-/**
- * Build and populate the BuddyPress accordion on Appearance > Menus.
- *
- * @since BuddyPress (1.9.0)
- *
- * @global $nav_menu_selected_id
- */
-function bp_admin_do_wp_nav_menu_meta_box() {
-	global $nav_menu_selected_id;
-
-	$walker = new BP_Walker_Nav_Menu_Checklist( false );
-	$args   = array( 'walker' => $walker );
-
-	$post_type_name = 'buddypress';
-
-	$tabs = array();
-
-	$tabs['loggedin']['label']  = __( 'Logged-In', 'buddypress' );
-	$tabs['loggedin']['pages']  = bp_nav_menu_get_loggedin_pages();
-
-	$tabs['loggedout']['label'] = __( 'Logged-Out', 'buddypress' );
-	$tabs['loggedout']['pages'] = bp_nav_menu_get_loggedout_pages();
-
-	?>
-
-	<div id="buddypress-menu" class="posttypediv">
-		<h4><?php _e( 'Logged-In', 'buddypress' ) ?></h4>
-		<p><?php _e( '<em>Logged-In</em> links are relative to the current user, and are not visible to visitors who are not logged in.', 'buddypress' ) ?></p>
-
-		<div id="tabs-panel-posttype-<?php echo $post_type_name; ?>-loggedin" class="tabs-panel tabs-panel-active">
-			<ul id="buddypress-menu-checklist-loggedin" class="categorychecklist form-no-clear">
-				<?php echo walk_nav_menu_tree( array_map( 'wp_setup_nav_menu_item', $tabs['loggedin']['pages'] ), 0, (object) $args );?>
-			</ul>
-		</div>
-
-		<h4><?php _e( 'Logged-Out', 'buddypress' ) ?></h4>
-		<p><?php _e( '<em>Logged-Out</em> links are not visible to users who are logged in.', 'buddypress' ) ?></p>
-
-		<div id="tabs-panel-posttype-<?php echo $post_type_name; ?>-loggedout" class="tabs-panel tabs-panel-active">
-			<ul id="buddypress-menu-checklist-loggedout" class="categorychecklist form-no-clear">
-				<?php echo walk_nav_menu_tree( array_map( 'wp_setup_nav_menu_item', $tabs['loggedout']['pages'] ), 0, (object) $args );?>
-			</ul>
-		</div>
-
-		<p class="button-controls">
-			<span class="add-to-menu">
-				<input type="submit"<?php if ( function_exists( 'wp_nav_menu_disabled_check' ) ) : wp_nav_menu_disabled_check( $nav_menu_selected_id ); endif; ?> class="button-secondary submit-add-to-menu right" value="<?php esc_attr_e( 'Add to Menu', 'buddypress' ); ?>" name="add-custom-menu-item" id="submit-buddypress-menu" />
-				<span class="spinner"></span>
-			</span>
-		</p>
-	</div><!-- /#buddypress-menu -->
-
-	<?php
-}
-
-/**
- * Restrict various items from view if editing a BuddyPress menu.
- *
- * If a person is editing a BP menu item, that person should not be able to
- * see or edit the following fields:
- *
- * - CSS Classes - We use the 'bp-menu' CSS class to determine if the
- *   menu item belongs to BP, so we cannot allow manipulation of this field to
- *   occur.
- * - URL - This field is automatically generated by BP on output, so this
- *   field is useless and can cause confusion.
- *
- * Note: These restrictions are only enforced if javascript is enabled.
- *
- * @since BuddyPress (1.9.0)
- */
-function bp_admin_wp_nav_menu_restrict_items() {
-?>
-	<script type="text/javascript">
-	jQuery( '#menu-to-edit').on( 'click', 'a.item-edit', function() {
-		var settings  = jQuery(this).closest( '.menu-item-bar' ).next( '.menu-item-settings' );
-		var css_class = settings.find( '.edit-menu-item-classes' );
-
-		if( css_class.val().indexOf( 'bp-menu' ) === 0 ) {
-			css_class.attr( 'readonly', 'readonly' );
-			settings.find( '.field-url' ).css( 'display', 'none' );
-		}
-	});
-	</script>
-<?php
-}
-
-/**
- * Add "Mark as Spam/Ham" button to user row actions.
- *
- * @since BuddyPress (2.0.0)
- *
- * @param array $actions User row action links.
- * @param object $user_object Current user information.
- * @return array $actions User row action links.
- */
-function bp_core_admin_user_row_actions( $actions, $user_object ) {
-
-	// Setup the $user_id variable from the current user object
-	$user_id = 0;
-	if ( !empty( $user_object->ID ) ) {
-		$user_id = absint( $user_object->ID );
-	}
-
-	// Bail early if user cannot perform this action, or is looking at themselves
-	if ( current_user_can( 'edit_user', $user_id ) && ( bp_loggedin_user_id() !== $user_id ) ) {
-
-		// Admin URL could be single site or network
-		$url = bp_get_admin_url( 'users.php' );
-
-		// If spammed, create unspam link
-		if ( bp_is_user_spammer( $user_id ) ) {
-			$url             = add_query_arg( array( 'action' => 'ham', 'user' => $user_id ), $url );
-			$unspam_link     = wp_nonce_url( $url, 'bp-spam-user' );
-			$actions['ham']  = sprintf( '<a href="%1$s">%2$s</a>', esc_url( $unspam_link ), esc_html__( 'Not Spam', 'buddypress' ) );
-
-		// If not already spammed, create spam link
-		} else {
-			$url             = add_query_arg( array( 'action' => 'spam', 'user' => $user_id ), $url );
-			$spam_link       = wp_nonce_url( $url, 'bp-spam-user' );
-			$actions['spam'] = sprintf( '<a class="submitdelete" href="%1$s">%2$s</a>', esc_url( $spam_link ), esc_html__( 'Spam', 'buddypress' ) );
-		}
-	}
-
-	// Create a "View" link
-	$url             = bp_core_get_user_domain( $user_id );
-	$actions['view'] = sprintf( '<a href="%1$s">%2$s</a>', esc_url( $url ), esc_html__( 'View', 'buddypress' ) );
-
-	// Return new actions
-	return $actions;
-}
-
-/**
- * Catch requests to mark individual users as spam/ham from users.php.
- *
- * @since BuddyPress (2.0.0)
- */
-function bp_core_admin_user_manage_spammers() {
-
-	// Print our inline scripts on non-Multisite
-	add_action( 'admin_footer', 'bp_core_admin_user_spammed_js' );
-
-	$action  = isset( $_REQUEST['action'] ) ? $_REQUEST['action'] : false;
-	$updated = isset( $_REQUEST['updated'] ) ? $_REQUEST['updated'] : false;
-	$mode    = isset( $_POST['mode'] ) ? $_POST['mode'] : false;
-
-	// if this is a multisite, bulk request, stop now!
-	if ( 'list' == $mode ) {
-		return;
-	}
-
-	// Process a spam/ham request
-	if ( ! empty( $action ) && in_array( $action, array( 'spam', 'ham' ) ) ) {
-
-		check_admin_referer( 'bp-spam-user' );
-
-		$user_id = ! empty( $_REQUEST['user'] ) ? intval( $_REQUEST['user'] ) : false;
-
-		if ( empty( $user_id ) ) {
-			return;
-		}
-
-		$redirect = wp_get_referer();
-
-		$status = ( $action == 'spam' ) ? 'spam' : 'ham';
-
-		// Process the user
-		bp_core_process_spammer_status( $user_id, $status );
-
-		$redirect = add_query_arg( array( 'updated' => 'marked-' . $status ), $redirect);
-
-		wp_redirect( $redirect );
-	}
-
-	// Display feedback
-	if ( ! empty( $updated ) && in_array( $updated, array( 'marked-spam', 'marked-ham' ) ) ) {
-
-		if ( 'marked-spam' === $updated ) {
-			$notice = __( 'User marked as spammer. Spam users are visible only to site admins.', 'buddypress' );
-		} else {
-			$notice = __( 'User removed from spam.', 'buddypress' );
-		}
-
-		bp_core_add_admin_notice( $notice );
-	}
-}
-
-/**
- * Inline script that adds the 'site-spammed' class to spammed users.
- *
- * @since BuddyPress (2.0.0)
- */
-function bp_core_admin_user_spammed_js() {
-	?>
-	<script type="text/javascript">
-		jQuery( document ).ready( function($) {
-			$( '.row-actions .ham' ).each( function() {
-				$( this ).closest( 'tr' ).addClass( 'site-spammed' );
-			});
-		});
-	</script>
-	<?php
 }

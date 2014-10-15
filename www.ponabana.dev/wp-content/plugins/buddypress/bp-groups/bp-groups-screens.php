@@ -3,9 +3,9 @@
 /**
  * BuddyPress Groups Screen Functions
  *
- * Screen functions are the controllers of BuddyPress. They will execute when
- * their specific URL is caught. They will first save or manipulate data using
- * business functions, then pass on the user to a template file.
+ * Screen functions are the controllers of BuddyPress. They will execute when their
+ * specific URL is caught. They will first save or manipulate data using business
+ * functions, then pass on the user to a template file.
  *
  * @package BuddyPress
  * @subpackage GroupsScreens
@@ -14,11 +14,8 @@
 // Exit if accessed directly
 if ( !defined( 'ABSPATH' ) ) exit;
 
-/**
- * Handle the display of the Groups directory index.
- */
 function groups_directory_groups_setup() {
-	if ( bp_is_groups_directory() ) {
+	if ( bp_is_groups_component() && !bp_current_action() && !bp_current_item() ) {
 		bp_update_is_directory( true, 'groups' );
 
 		do_action( 'groups_directory_groups_setup' );
@@ -28,19 +25,23 @@ function groups_directory_groups_setup() {
 }
 add_action( 'bp_screens', 'groups_directory_groups_setup', 2 );
 
-/**
- * Handle the loading of the My Groups page.
- */
 function groups_screen_my_groups() {
+
+	$bp = buddypress();
+
+	// Delete group request notifications for the user
+	if ( isset( $_GET['n'] ) ) {
+		bp_core_delete_notifications_by_type( bp_loggedin_user_id(), $bp->groups->id, 'membership_request_accepted' );
+		bp_core_delete_notifications_by_type( bp_loggedin_user_id(), $bp->groups->id, 'membership_request_rejected' );
+		bp_core_delete_notifications_by_type( bp_loggedin_user_id(), $bp->groups->id, 'member_promoted_to_mod'      );
+		bp_core_delete_notifications_by_type( bp_loggedin_user_id(), $bp->groups->id, 'member_promoted_to_admin'    );
+	}
 
 	do_action( 'groups_screen_my_groups' );
 
 	bp_core_load_template( apply_filters( 'groups_template_my_groups', 'members/single/home' ) );
 }
 
-/**
- * Handle the loading of a user's Groups > Invites page.
- */
 function groups_screen_group_invites() {
 	$group_id = (int)bp_action_variable( 1 );
 
@@ -58,18 +59,13 @@ function groups_screen_group_invites() {
 			$group = groups_get_group( array( 'group_id' => $group_id ) );
 
 			groups_record_activity( array(
+				'action'  => apply_filters_ref_array( 'groups_activity_accepted_invite_action', array( sprintf( __( '%1$s joined the group %2$s', 'buddypress'), bp_core_get_userlink( bp_loggedin_user_id() ), '<a href="' . bp_get_group_permalink( $group ) . '">' . esc_attr( $group->name ) . '</a>' ), bp_loggedin_user_id(), &$group ) ),
 				'type'    => 'joined_group',
 				'item_id' => $group->id
 			) );
 		}
 
-		if ( isset( $_GET['redirect_to'] ) ) {
-			$redirect_to = urldecode( $_GET['redirect_to'] );
-		} else {
-			$redirect_to = trailingslashit( bp_loggedin_user_domain() . bp_get_groups_slug() . '/' . bp_current_action() );
-		}
-
-		bp_core_redirect( $redirect_to );
+		bp_core_redirect( trailingslashit( bp_loggedin_user_domain() . bp_get_groups_slug() . '/' . bp_current_action() ) );
 
 	} else if ( bp_is_action_variable( 'reject' ) && is_numeric( $group_id ) ) {
 		// Check the nonce
@@ -82,27 +78,29 @@ function groups_screen_group_invites() {
 			bp_core_add_message( __( 'Group invite rejected', 'buddypress' ) );
 		}
 
-		if ( isset( $_GET['redirect_to'] ) ) {
-			$redirect_to = urldecode( $_GET['redirect_to'] );
-		} else {
-			$redirect_to = trailingslashit( bp_loggedin_user_domain() . bp_get_groups_slug() . '/' . bp_current_action() );
-		}
-
-		bp_core_redirect( $redirect_to );
+		bp_core_redirect( trailingslashit( bp_loggedin_user_domain() . bp_get_groups_slug() . '/' . bp_current_action() ) );
 	}
+
+	// Remove notifications
+	bp_core_delete_notifications_by_type( bp_loggedin_user_id(), 'groups', 'group_invite' );
 
 	do_action( 'groups_screen_group_invites', $group_id );
 
 	bp_core_load_template( apply_filters( 'groups_template_group_invites', 'members/single/home' ) );
 }
 
-/**
- * Handle the loading of a single group's page.
- */
 function groups_screen_group_home() {
 
-	if ( ! bp_is_single_item() ) {
+	if ( ! bp_is_single_item() )
 		return false;
+
+	$bp = buddypress();
+
+	if ( isset( $_GET['n'] ) ) {
+		bp_core_delete_notifications_by_type( bp_loggedin_user_id(), $bp->groups->id, 'membership_request_accepted' );
+		bp_core_delete_notifications_by_type( bp_loggedin_user_id(), $bp->groups->id, 'membership_request_rejected' );
+		bp_core_delete_notifications_by_type( bp_loggedin_user_id(), $bp->groups->id, 'member_promoted_to_mod'      );
+		bp_core_delete_notifications_by_type( bp_loggedin_user_id(), $bp->groups->id, 'member_promoted_to_admin'    );
 	}
 
 	do_action( 'groups_screen_group_home' );
@@ -111,7 +109,9 @@ function groups_screen_group_home() {
 }
 
 /**
- * This screen function handles actions related to group forums.
+ * This screen function handles actions related to group forums
+ *
+ * @package BuddyPress
  */
 function groups_screen_group_forum() {
 
@@ -409,9 +409,6 @@ function groups_screen_group_forum() {
 	}
 }
 
-/**
- * Handle the display of a group's Members page.
- */
 function groups_screen_group_members() {
 
 	if ( !bp_is_single_item() )
@@ -426,9 +423,6 @@ function groups_screen_group_members() {
 	bp_core_load_template( apply_filters( 'groups_template_group_members', 'groups/single/home' ) );
 }
 
-/**
- * Handle the display of a group's Send Invites page.
- */
 function groups_screen_group_invite() {
 
 	if ( !bp_is_single_item() )
@@ -462,52 +456,6 @@ function groups_screen_group_invite() {
 	}
 }
 
-/**
- * Process group invitation removal requests.
- *
- * Note that this function is only used when JS is disabled. Normally, clicking
- * Remove Invite removes the invitation via AJAX.
- *
- * @since BuddyPress (2.0.0)
- */
-function groups_remove_group_invite() {
-	if ( ! bp_is_group_invites() ) {
-		return;
-	}
-
-	if ( ! bp_is_action_variable( 'remove', 0 ) || ! is_numeric( bp_action_variable( 1 ) ) ) {
-		return;
-	}
-
-	if ( ! check_admin_referer( 'groups_invite_uninvite_user' ) ) {
-		return false;
-	}
-
-	$friend_id = intval( bp_action_variable( 1 ) );
-	$group_id  = bp_get_current_group_id();
-	$message   = __( 'Invite successfully removed', 'buddypress' );
-	$redirect  = wp_get_referer();
-	$error     = false;
-
-	if ( ! bp_groups_user_can_send_invites( $group_id ) ) {
-		$message = __( 'You are not allowed to send or remove invites', 'buddypress' );
-		$error = 'error';
-	} else if ( BP_Groups_Member::check_for_membership_request( $friend_id, $group_id ) ) {
-		$message = __( 'The member requested to join the group', 'buddypress' );
-		$error = 'error';
-	} else if ( ! groups_uninvite_user( $friend_id, $group_id ) ) {
-		$message = __( 'There was an error removing the invite', 'buddypress' );
-		$error = 'error';
-	}
-
-	bp_core_add_message( $message, $error );
-	bp_core_redirect( $redirect );
-}
-add_action( 'bp_screens', 'groups_remove_group_invite' );
-
-/**
- * Handle the display of a group's Request Membership page.
- */
 function groups_screen_group_request_membership() {
 	global $bp;
 
@@ -519,15 +467,6 @@ function groups_screen_group_request_membership() {
 	if ( 'private' != $bp->groups->current_group->status )
 		return false;
 
-	// If the user is already invited, accept invitation
-	if ( groups_check_user_has_invite( bp_loggedin_user_id(), $bp->groups->current_group->id ) ) {
-		if ( groups_accept_invite( bp_loggedin_user_id(), $bp->groups->current_group->id ) )
-			bp_core_add_message( __( 'Group invite accepted', 'buddypress' ) );
-		else
-			bp_core_add_message( __( 'There was an error accepting the group invitation; please try again.', 'buddypress' ), 'error' );
-		bp_core_redirect( bp_get_group_permalink( $bp->groups->current_group ) );
-	}
-
 	// If the user has submitted a request, send it.
 	if ( isset( $_POST['group-request-send']) ) {
 
@@ -536,7 +475,7 @@ function groups_screen_group_request_membership() {
 			return false;
 
 		if ( !groups_send_membership_request( bp_loggedin_user_id(), $bp->groups->current_group->id ) ) {
-			bp_core_add_message( __( 'There was an error sending your group membership request; please try again.', 'buddypress' ), 'error' );
+			bp_core_add_message( __( 'There was an error sending your group membership request, please try again.', 'buddypress' ), 'error' );
 		} else {
 			bp_core_add_message( __( 'Your membership request was sent to the group administrator successfully. You will be notified when the group administrator responds to your request.', 'buddypress' ) );
 		}
@@ -548,9 +487,6 @@ function groups_screen_group_request_membership() {
 	bp_core_load_template( apply_filters( 'groups_template_group_request_membership', 'groups/single/home' ) );
 }
 
-/**
- * Handle the display of a single group activity item.
- */
 function groups_screen_group_activity_permalink() {
 
 	if ( !bp_is_groups_component() || !bp_is_active( 'activity' ) || ( bp_is_active( 'activity' ) && !bp_is_current_action( bp_get_activity_slug() ) ) || !bp_action_variable( 0 ) )
@@ -562,9 +498,6 @@ function groups_screen_group_activity_permalink() {
 }
 add_action( 'bp_screens', 'groups_screen_group_activity_permalink' );
 
-/**
- * Handle the display of a group's Admin pages.
- */
 function groups_screen_group_admin() {
 	if ( !bp_is_groups_component() || !bp_is_current_action( 'admin' ) )
 		return false;
@@ -575,9 +508,6 @@ function groups_screen_group_admin() {
 	bp_core_redirect( bp_get_group_permalink( groups_get_current_group() ) . 'admin/edit-details/' );
 }
 
-/**
- * Handle the display of a group's admin/edit-details page.
- */
 function groups_screen_group_admin_edit_details() {
 
 	if ( 'edit-details' != bp_get_group_current_admin_tab() )
@@ -596,7 +526,7 @@ function groups_screen_group_admin_edit_details() {
 			$group_notify_members = isset( $_POST['group-notify-members'] ) ? (int) $_POST['group-notify-members'] : 0;
 
 			if ( !groups_edit_base_group_details( $_POST['group-id'], $_POST['group-name'], $_POST['group-desc'], $group_notify_members ) ) {
-				bp_core_add_message( __( 'There was an error updating group details; please try again.', 'buddypress' ), 'error' );
+				bp_core_add_message( __( 'There was an error updating group details, please try again.', 'buddypress' ), 'error' );
 			} else {
 				bp_core_add_message( __( 'Group details were successfully updated.', 'buddypress' ) );
 			}
@@ -613,9 +543,6 @@ function groups_screen_group_admin_edit_details() {
 }
 add_action( 'bp_screens', 'groups_screen_group_admin_edit_details' );
 
-/**
- * Handle the display of a group's admin/group-settings page.
- */
 function groups_screen_group_admin_settings() {
 
 	if ( 'group-settings' != bp_get_group_current_admin_tab() )
@@ -636,14 +563,14 @@ function groups_screen_group_admin_settings() {
 
 		// Checked against a whitelist for security
 		$allowed_invite_status = apply_filters( 'groups_allowed_invite_status', array( 'members', 'mods', 'admins' ) );
-		$invite_status	       = isset( $_POST['group-invite-status'] ) && in_array( $_POST['group-invite-status'], (array) $allowed_invite_status ) ? $_POST['group-invite-status'] : 'members';
+		$invite_status	       = in_array( $_POST['group-invite-status'], (array) $allowed_invite_status ) ? $_POST['group-invite-status'] : 'members';
 
 		// Check the nonce
 		if ( !check_admin_referer( 'groups_edit_group_settings' ) )
 			return false;
 
 		if ( !groups_edit_group_settings( $_POST['group-id'], $enable_forum, $status, $invite_status ) ) {
-			bp_core_add_message( __( 'There was an error updating group settings; please try again.', 'buddypress' ), 'error' );
+			bp_core_add_message( __( 'There was an error updating group settings, please try again.', 'buddypress' ), 'error' );
 		} else {
 			bp_core_add_message( __( 'Group settings were successfully updated.', 'buddypress' ) );
 		}
@@ -659,16 +586,13 @@ function groups_screen_group_admin_settings() {
 }
 add_action( 'bp_screens', 'groups_screen_group_admin_settings' );
 
-/**
- * Handle the display of a group's Change Avatar page.
- */
 function groups_screen_group_admin_avatar() {
 
 	if ( 'group-avatar' != bp_get_group_current_admin_tab() )
 		return false;
 
 	// If the logged-in user doesn't have permission or if avatar uploads are disabled, then stop here
-	if ( ! bp_is_item_admin() || (int) bp_get_option( 'bp-disable-avatar-uploads' ) || ! buddypress()->avatar->show_avatars )
+	if ( ! bp_is_item_admin() || (int) bp_get_option( 'bp-disable-avatar-uploads' ) )
 		return false;
 
 	$bp = buddypress();
@@ -680,9 +604,9 @@ function groups_screen_group_admin_avatar() {
 		check_admin_referer( 'bp_group_avatar_delete' );
 
 		if ( bp_core_delete_existing_avatar( array( 'item_id' => $bp->groups->current_group->id, 'object' => 'group' ) ) ) {
-			bp_core_add_message( __( 'The group profile photo was deleted successfully!', 'buddypress' ) );
+			bp_core_add_message( __( 'Your avatar was deleted successfully!', 'buddypress' ) );
 		} else {
-			bp_core_add_message( __( 'There was a problem deleting the group profile photo; please try again.', 'buddypress' ), 'error' );
+			bp_core_add_message( __( 'There was a problem deleting that avatar, please try again.', 'buddypress' ), 'error' );
 		}
 	}
 
@@ -725,9 +649,9 @@ function groups_screen_group_admin_avatar() {
 		);
 
 		if ( !bp_core_avatar_handle_crop( $args ) ) {
-			bp_core_add_message( __( 'There was a problem cropping the group profile photo.', 'buddypress' ), 'error' );
+			bp_core_add_message( __( 'There was a problem cropping the avatar.', '       buddypress' ), 'error' );
 		} else {
-			bp_core_add_message( __( 'The new group profile photo was uploaded successfully.', 'buddypress' ) );
+			bp_core_add_message( __( 'The new group avatar was uploaded successfully.', 'buddypress' )          );
 		}
 	}
 
@@ -739,6 +663,8 @@ add_action( 'bp_screens', 'groups_screen_group_admin_avatar' );
 
 /**
  * This function handles actions related to member management on the group admin.
+ *
+ * @package BuddyPress
  */
 function groups_screen_group_admin_manage_members() {
 
@@ -786,7 +712,7 @@ function groups_screen_group_admin_manage_members() {
 
 			// Demote a user.
 			elseif ( !groups_demote_member( $user_id, $bp->groups->current_group->id ) )
-				bp_core_add_message( __( 'There was an error when demoting that user; please try again', 'buddypress' ), 'error' );
+				bp_core_add_message( __( 'There was an error when demoting that user, please try again', 'buddypress' ), 'error' );
 			else
 				bp_core_add_message( __( 'User demoted successfully', 'buddypress' ) );
 
@@ -804,7 +730,7 @@ function groups_screen_group_admin_manage_members() {
 
 			// Ban a user.
 			if ( !groups_ban_member( $user_id, $bp->groups->current_group->id ) )
-				bp_core_add_message( __( 'There was an error when banning that user; please try again', 'buddypress' ), 'error' );
+				bp_core_add_message( __( 'There was an error when banning that user, please try again', 'buddypress' ), 'error' );
 			else
 				bp_core_add_message( __( 'User banned successfully', 'buddypress' ) );
 
@@ -840,7 +766,7 @@ function groups_screen_group_admin_manage_members() {
 
 			// Remove a user.
 			if ( !groups_remove_member( $user_id, $bp->groups->current_group->id ) )
-				bp_core_add_message( __( 'There was an error removing that user from the group; please try again', 'buddypress' ), 'error' );
+				bp_core_add_message( __( 'There was an error removing that user from the group, please try again', 'buddypress' ), 'error' );
 			else
 				bp_core_add_message( __( 'User removed successfully', 'buddypress' ) );
 
@@ -856,22 +782,20 @@ function groups_screen_group_admin_manage_members() {
 }
 add_action( 'bp_screens', 'groups_screen_group_admin_manage_members' );
 
-/**
- * Handle the display of Admin > Membership Requests.
- */
 function groups_screen_group_admin_requests() {
-	$bp = buddypress();
+	global $bp;
 
-	if ( 'membership-requests' != bp_get_group_current_admin_tab() ) {
+	if ( 'membership-requests' != bp_get_group_current_admin_tab() )
 		return false;
-	}
 
-	if ( ! bp_is_item_admin() || ( 'public' == $bp->groups->current_group->status ) ) {
+	if ( ! bp_is_item_admin() || ( 'public' == $bp->groups->current_group->status ) )
 		return false;
-	}
 
-	$request_action = (string) bp_action_variable( 1 );
-	$membership_id  = (int) bp_action_variable( 2 );
+	// Remove any screen notifications
+	bp_core_delete_notifications_by_type( bp_loggedin_user_id(), $bp->groups->id, 'new_membership_request' );
+
+	$request_action = (string)bp_action_variable( 1 );
+	$membership_id  = (int)bp_action_variable( 2 );
 
 	if ( !empty( $request_action ) && !empty( $membership_id ) ) {
 		if ( 'accept' == $request_action && is_numeric( $membership_id ) ) {
@@ -882,7 +806,7 @@ function groups_screen_group_admin_requests() {
 
 			// Accept the membership request
 			if ( !groups_accept_membership_request( $membership_id ) )
-				bp_core_add_message( __( 'There was an error accepting the membership request; please try again.', 'buddypress' ), 'error' );
+				bp_core_add_message( __( 'There was an error accepting the membership request, please try again.', 'buddypress' ), 'error' );
 			else
 				bp_core_add_message( __( 'Group membership request accepted', 'buddypress' ) );
 
@@ -893,7 +817,7 @@ function groups_screen_group_admin_requests() {
 
 			// Reject the membership request
 			if ( !groups_reject_membership_request( $membership_id ) )
-				bp_core_add_message( __( 'There was an error rejecting the membership request; please try again.', 'buddypress' ), 'error' );
+				bp_core_add_message( __( 'There was an error rejecting the membership request, please try again.', 'buddypress' ), 'error' );
 			else
 				bp_core_add_message( __( 'Group membership request rejected', 'buddypress' ) );
 		}
@@ -907,9 +831,6 @@ function groups_screen_group_admin_requests() {
 }
 add_action( 'bp_screens', 'groups_screen_group_admin_requests' );
 
-/**
- * Handle the display of the Delete Group page.
- */
 function groups_screen_group_admin_delete_group() {
 	global $bp;
 
@@ -930,7 +851,7 @@ function groups_screen_group_admin_delete_group() {
 
 		// Group admin has deleted the group, now do it.
 		if ( !groups_delete_group( $bp->groups->current_group->id ) ) {
-			bp_core_add_message( __( 'There was an error deleting the group; please try again.', 'buddypress' ), 'error' );
+			bp_core_add_message( __( 'There was an error deleting the group, please try again.', 'buddypress' ), 'error' );
 		} else {
 			bp_core_add_message( __( 'The group was deleted successfully', 'buddypress' ) );
 
@@ -949,7 +870,9 @@ function groups_screen_group_admin_delete_group() {
 add_action( 'bp_screens', 'groups_screen_group_admin_delete_group' );
 
 /**
- * Render the group settings fields on the Notification Settings page.
+ * Renders the group settings fields on the Notification Settings page
+ *
+ * @package BuddyPress
  */
 function groups_screen_notification_settings() {
 
@@ -969,7 +892,7 @@ function groups_screen_notification_settings() {
 		<thead>
 			<tr>
 				<th class="icon"></th>
-				<th class="title"><?php _ex( 'Groups', 'Group settings on notification settings page', 'buddypress' ) ?></th>
+				<th class="title"><?php _e( 'Groups', 'buddypress' ) ?></th>
 				<th class="yes"><?php _e( 'Yes', 'buddypress' ) ?></th>
 				<th class="no"><?php _e( 'No', 'buddypress' )?></th>
 			</tr>
@@ -978,25 +901,25 @@ function groups_screen_notification_settings() {
 		<tbody>
 			<tr id="groups-notification-settings-invitation">
 				<td></td>
-				<td><?php _ex( 'A member invites you to join a group', 'group settings on notification settings page','buddypress' ) ?></td>
+				<td><?php _e( 'A member invites you to join a group', 'buddypress' ) ?></td>
 				<td class="yes"><input type="radio" name="notifications[notification_groups_invite]" value="yes" <?php checked( $group_invite, 'yes', true ) ?>/></td>
 				<td class="no"><input type="radio" name="notifications[notification_groups_invite]" value="no" <?php checked( $group_invite, 'no', true ) ?>/></td>
 			</tr>
 			<tr id="groups-notification-settings-info-updated">
 				<td></td>
-				<td><?php _ex( 'Group information is updated', 'group settings on notification settings page', 'buddypress' ) ?></td>
+				<td><?php _e( 'Group information is updated', 'buddypress' ) ?></td>
 				<td class="yes"><input type="radio" name="notifications[notification_groups_group_updated]" value="yes" <?php checked( $group_update, 'yes', true ) ?>/></td>
 				<td class="no"><input type="radio" name="notifications[notification_groups_group_updated]" value="no" <?php checked( $group_update, 'no', true ) ?>/></td>
 			</tr>
 			<tr id="groups-notification-settings-promoted">
 				<td></td>
-				<td><?php _ex( 'You are promoted to a group administrator or moderator', 'group settings on notification settings page', 'buddypress' ) ?></td>
+				<td><?php _e( 'You are promoted to a group administrator or moderator', 'buddypress' ) ?></td>
 				<td class="yes"><input type="radio" name="notifications[notification_groups_admin_promotion]" value="yes" <?php checked( $group_promo, 'yes', true ) ?>/></td>
 				<td class="no"><input type="radio" name="notifications[notification_groups_admin_promotion]" value="no" <?php checked( $group_promo, 'no', true ) ?>/></td>
 			</tr>
 			<tr id="groups-notification-settings-request">
 				<td></td>
-				<td><?php _ex( 'A member requests to join a private group for which you are an admin', 'group settings on notification settings page', 'buddypress' ) ?></td>
+				<td><?php _e( 'A member requests to join a private group for which you are an admin', 'buddypress' ) ?></td>
 				<td class="yes"><input type="radio" name="notifications[notification_groups_membership_request]" value="yes" <?php checked( $group_request, 'yes', true ) ?>/></td>
 				<td class="no"><input type="radio" name="notifications[notification_groups_membership_request]" value="no" <?php checked( $group_request, 'no', true ) ?>/></td>
 			</tr>
@@ -1013,19 +936,19 @@ add_action( 'bp_notification_settings', 'groups_screen_notification_settings' );
 /** Theme Compatability *******************************************************/
 
 /**
- * The main theme compat class for BuddyPress Groups.
+ * The main theme compat class for BuddyPress Groups
  *
  * This class sets up the necessary theme compatability actions to safely output
  * group template parts to the_title and the_content areas of a theme.
  *
- * @since BuddyPress (1.7.0)
+ * @since BuddyPress (1.7)
  */
 class BP_Groups_Theme_Compat {
 
 	/**
-	 * Set up theme compatibility for the Groups component.
+	 * Setup the groups component theme compatibility
 	 *
-	 * @since BuddyPress (1.7.0)
+	 * @since BuddyPress (1.7)
 	 */
 	public function __construct() {
 		add_action( 'bp_setup_theme_compat', array( $this, 'is_group' ) );
@@ -1034,7 +957,7 @@ class BP_Groups_Theme_Compat {
 	/**
 	 * Are we looking at something that needs group theme compatability?
 	 *
-	 * @since BuddyPress (1.7.0)
+	 * @since BuddyPress (1.7)
 	 */
 	public function is_group() {
 
@@ -1067,17 +990,16 @@ class BP_Groups_Theme_Compat {
 		}
 	}
 
-	/** Directory *********************************************************/
+	/** Directory *************************************************************/
 
 	/**
 	 * Add template hierarchy to theme compat for the group directory page.
 	 *
-	 * This is to mirror how WordPress has
-	 * {@link https://codex.wordpress.org/Template_Hierarchy template hierarchy}.
+	 * This is to mirror how WordPress has {@link https://codex.wordpress.org/Template_Hierarchy template hierarchy}.
 	 *
-	 * @since BuddyPress (1.8.0)
+	 * @since BuddyPress (1.8)
 	 *
-	 * @param string $templates The templates from bp_get_theme_compat_templates().
+	 * @param string $templates The templates from bp_get_theme_compat_templates()
 	 * @return array $templates Array of custom templates to look for.
 	 */
 	public function directory_template_hierarchy( $templates ) {
@@ -1094,13 +1016,18 @@ class BP_Groups_Theme_Compat {
 	}
 
 	/**
-	 * Update the global $post with directory data.
+	 * Update the global $post with directory data
 	 *
-	 * @since BuddyPress (1.7.0)
+	 * @since BuddyPress (1.7)
 	 */
 	public function directory_dummy_post() {
 
-		$title = apply_filters( 'bp_groups_directory_header', bp_get_directory_title( 'groups' ) );
+		// Title based on ability to create groups
+		if ( is_user_logged_in() && bp_user_can_create_groups() ) {
+			$title = __( 'Groups', 'buddypress' ) . '&nbsp;<a class="button bp-title-button" href="' . trailingslashit( bp_get_root_domain() . '/' . bp_get_groups_root_slug() . '/create' ) . '">' . __( 'Create a Group', 'buddypress' ) . '</a>';
+		} else {
+			$title = __( 'Groups', 'buddypress' );
+		}
 
 		bp_theme_compat_reset_post( array(
 			'ID'             => 0,
@@ -1108,33 +1035,32 @@ class BP_Groups_Theme_Compat {
 			'post_author'    => 0,
 			'post_date'      => 0,
 			'post_content'   => '',
-			'post_type'      => 'page',
+			'post_type'      => 'bp_group',
 			'post_status'    => 'publish',
-			'is_page'        => true,
+			'is_archive'     => true,
 			'comment_status' => 'closed'
 		) );
 	}
 
 	/**
-	 * Filter the_content with the groups index template part.
+	 * Filter the_content with the groups index template part
 	 *
-	 * @since BuddyPress (1.7.0)
+	 * @since BuddyPress (1.7)
 	 */
 	public function directory_content() {
-		return bp_buffer_template_part( 'groups/index', null, false );
+		bp_buffer_template_part( 'groups/index' );
 	}
 
-	/** Create ************************************************************/
+	/** Create ****************************************************************/
 
 	/**
 	 * Add custom template hierarchy to theme compat for the group create page.
 	 *
-	 * This is to mirror how WordPress has
-	 * {@link https://codex.wordpress.org/Template_Hierarchy template hierarchy}.
+	 * This is to mirror how WordPress has {@link https://codex.wordpress.org/Template_Hierarchy template hierarchy}.
 	 *
-	 * @since BuddyPress (1.8.0)
+	 * @since BuddyPress (1.8)
 	 *
-	 * @param string $templates The templates from bp_get_theme_compat_templates().
+	 * @param string $templates The templates from bp_get_theme_compat_templates()
 	 * @return array $templates Array of custom templates to look for.
 	 */
 	public function create_template_hierarchy( $templates ) {
@@ -1151,13 +1077,18 @@ class BP_Groups_Theme_Compat {
 	}
 
 	/**
-	 * Update the global $post with create screen data.
+	 * Update the global $post with create screen data
 	 *
-	 * @since BuddyPress (1.7.0)
+	 * @since BuddyPress (1.7)
 	 */
 	public function create_dummy_post() {
 
-		$title = _x( 'Groups', 'Group creation page', 'buddypress' );
+		// Title based on ability to create groups
+		if ( is_user_logged_in() && bp_user_can_create_groups() ) {
+			$title = '<a class="button" href="' . trailingslashit( bp_get_root_domain() . '/' . bp_get_groups_root_slug() ) . '">' . __( 'Groups', 'buddypress' ) . '</a>&nbsp;' . __( 'Create a Group', 'buddypress' );
+		} else {
+			$title = __( 'Groups', 'buddypress' );
+		}
 
 		bp_theme_compat_reset_post( array(
 			'ID'             => 0,
@@ -1165,33 +1096,32 @@ class BP_Groups_Theme_Compat {
 			'post_author'    => 0,
 			'post_date'      => 0,
 			'post_content'   => '',
-			'post_type'      => 'page',
+			'post_type'      => 'bp_group',
 			'post_status'    => 'publish',
-			'is_page'        => true,
+			'is_archive'     => true,
 			'comment_status' => 'closed'
 		) );
 	}
 
 	/**
-	 * Filter the_content with the create screen template part.
+	 * Filter the_content with the create screen template part
 	 *
-	 * @since BuddyPress (1.7.0)
+	 * @since BuddyPress (1.7)
 	 */
 	public function create_content() {
-		return bp_buffer_template_part( 'groups/create', null, false );
+		bp_buffer_template_part( 'groups/create' );
 	}
 
-	/** Single ************************************************************/
+	/** Single ****************************************************************/
 
 	/**
-	 * Add custom template hierarchy to theme compat for group pages.
+	 * Add custom template hierarchy to theme compat for group pages. 
 	 *
-	 * This is to mirror how WordPress has
-	 * {@link https://codex.wordpress.org/Template_Hierarchy template hierarchy}.
+	 * This is to mirror how WordPress has {@link https://codex.wordpress.org/Template_Hierarchy template hierarchy}.
 	 *
-	 * @since BuddyPress (1.8.0)
+	 * @since BuddyPress (1.8)
 	 *
-	 * @param string $templates The templates from bp_get_theme_compat_templates().
+	 * @param string $templates The templates from bp_get_theme_compat_templates()
 	 * @return array $templates Array of custom templates to look for.
 	 */
 	public function single_template_hierarchy( $templates ) {
@@ -1215,9 +1145,9 @@ class BP_Groups_Theme_Compat {
 	}
 
 	/**
-	 * Update the global $post with single group data.
+	 * Update the global $post with single group data
 	 *
-	 * @since BuddyPress (1.7.0)
+	 * @since BuddyPress (1.7)
 	 */
 	public function single_dummy_post() {
 		bp_theme_compat_reset_post( array(
@@ -1226,20 +1156,20 @@ class BP_Groups_Theme_Compat {
 			'post_author'    => 0,
 			'post_date'      => 0,
 			'post_content'   => '',
-			'post_type'      => 'page',
+			'post_type'      => 'bp_group',
 			'post_status'    => 'publish',
-			'is_page'        => true,
+			'is_archive'     => true,
 			'comment_status' => 'closed'
 		) );
 	}
 
 	/**
-	 * Filter the_content with the single group template part.
+	 * Filter the_content with the single group template part
 	 *
-	 * @since BuddyPress (1.7.0)
+	 * @since BuddyPress (1.7)
 	 */
 	public function single_content() {
-		return bp_buffer_template_part( 'groups/single/home', null, false );
+		bp_buffer_template_part( 'groups/single/home' );
 	}
 }
 new BP_Groups_Theme_Compat();

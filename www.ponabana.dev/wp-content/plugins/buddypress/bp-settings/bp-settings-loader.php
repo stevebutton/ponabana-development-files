@@ -21,10 +21,7 @@ class BP_Settings_Component extends BP_Component {
 		parent::start(
 			'settings',
 			__( 'Settings', 'buddypress' ),
-			buddypress()->plugin_dir,
-			array(
-				'adminbar_myaccount_order' => 100
-			)
+			BP_PLUGIN_DIR
 		);
 	}
 
@@ -33,7 +30,7 @@ class BP_Settings_Component extends BP_Component {
 	 *
 	 * @global BuddyPress $bp The one true BuddyPress instance
 	 */
-	public function includes( $includes = array() ) {
+	public function includes() {
 		parent::includes( array(
 			'actions',
 			'screens',
@@ -50,7 +47,7 @@ class BP_Settings_Component extends BP_Component {
 	 *
 	 * @since BuddyPress (1.5)
 	 */
-	public function setup_globals( $args = array() ) {
+	public function setup_globals() {
 
 		// Define a slug, if necessary
 		if ( !defined( 'BP_SETTINGS_SLUG' ) )
@@ -64,9 +61,12 @@ class BP_Settings_Component extends BP_Component {
 	}
 
 	/**
-	 * Set up navigation.
+	 * Setup BuddyBar navigation
 	 */
-	public function setup_nav( $main_nav = array(), $sub_nav = array() ) {
+	public function setup_nav() {
+
+		// Define local variable
+		$sub_nav = array();
 
 		// Add the settings navigation item
 		$main_nav = array(
@@ -100,10 +100,9 @@ class BP_Settings_Component extends BP_Component {
 			'user_has_access' => bp_core_can_edit_settings()
 		);
 
-		// Add Email nav item. Formerly called 'Notifications', we
-		// retain the old slug and function names for backward compat
+		// Add Notifications nav item
 		$sub_nav[] = array(
-			'name'            => __( 'Email', 'buddypress' ),
+			'name'            => __( 'Notifications', 'buddypress' ),
 			'slug'            => 'notifications',
 			'parent_url'      => $settings_link,
 			'parent_slug'     => $this->slug,
@@ -144,10 +143,13 @@ class BP_Settings_Component extends BP_Component {
 	/**
 	 * Set up the Toolbar
 	 */
-	public function setup_admin_bar( $wp_admin_nav = array() ) {
+	public function setup_admin_bar() {
 
 		// The instance
 		$bp = buddypress();
+
+		// Prevent debug notices
+		$wp_admin_nav = array();
 
 		// Menus for logged in user
 		if ( is_user_logged_in() ) {
@@ -176,7 +178,7 @@ class BP_Settings_Component extends BP_Component {
 			$wp_admin_nav[] = array(
 				'parent' => 'my-account-' . $this->id,
 				'id'     => 'my-account-' . $this->id . '-notifications',
-				'title'  => __( 'Email', 'buddypress' ),
+				'title'  => __( 'Notifications', 'buddypress' ),
 				'href'   => trailingslashit( $settings_link . 'notifications' )
 			);
 
