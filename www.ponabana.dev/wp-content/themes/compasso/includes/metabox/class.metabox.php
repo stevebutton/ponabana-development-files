@@ -50,7 +50,9 @@ class G7_Meta_Box {
 		$value = get_post_meta($post_id, $field['id'], true);
 
 		if ($value == '' && isset($field['std'])) {
-			$value = $field['std'];
+			if (!isset($_GET['post'])) {
+				$value = $field['std'];
+			}
 		}
 
 		switch ($field['type']) {
@@ -199,12 +201,12 @@ class G7_Meta_Box {
 			}
 		}
 		printf(
-			'<div class="g7-rating-add"><a href="#">Add Rating</a></div>
+			'<div class="g7-rating-add"><a href="#">%s</a></div>
 			<table class="g7-rating">
 				<thead>
 					<tr>
-						<th>Criteria</th>
-						<th colspan="3">Rating</th>
+						<th>%s</th>
+						<th colspan="3">%s</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -212,14 +214,18 @@ class G7_Meta_Box {
 				</tbody>
 				<tfoot>
 					<tr>
-						<td>Overall</td>
+						<td>%s</td>
 						<td></td>
 						<td><input type="text" name="%s" id="%s" value="%s" size="2" readonly="readonly"></td>
 						<td></td>
 					</tr>
 				</tfoot>
 			</table>',
+			__('Add Rating', 'g7theme'),
+			__('Criteria', 'g7theme'),
+			__('Rating', 'g7theme'),
 			$row2,
+			__('Overall', 'g7theme'),
 			$field['id3'],
 			$field['id3'],
 			$overall_rating
@@ -228,7 +234,6 @@ class G7_Meta_Box {
 
 	function categories($field, $post_id) {
 		$value = get_post_meta($post_id, $field['id'], true);
-		//print_r($value);
 
 		$row = '
 			<div class="widget">
@@ -241,16 +246,17 @@ class G7_Meta_Box {
 				<div class="widget-inside">
 					<div class="widget-content">
 						<p>
-							<label>Category:</label>
+							<label>' . __('Category', 'g7theme') . ':</label>
 							%3$s
+						</p>
 						<p>
-							<label>Number of posts to show:</label>
+							<label>' . __('Number of posts to show', 'g7theme') . ':</label>
 							<input type="text" size="3" value="%4$s" name="%2$s[num][]">
 						</p>
 					</div>
 					<div class="widget-control-actions">
 						<div class="alignleft">
-							<a href="#remove" class="widget-control-remove">Delete</a>
+							<a href="#remove" class="widget-control-remove">' . __('Delete', 'g7theme') . '</a>
 						</div>
 						<br class="clear">
 					</div>

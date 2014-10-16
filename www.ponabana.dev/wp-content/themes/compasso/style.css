@@ -2,7 +2,7 @@
 Theme Name: Compasso
 Theme URI: http://gawibowo.com/themes/compasso
 Description: Responsive Magazine/Blog WordPress theme
-Version: 1.3
+Version: 1.4
 Author: gawibowo
 Author URI: http://themeforest.net/user/gawibowo
 License: GNU General Public License version 3.0
@@ -186,6 +186,10 @@ textarea.placeholder {
 	padding: 10px;
 	border: 1px solid #eee;
 	background: #fcfcfc;
+	max-width: 100%;
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
 }
 .wp-caption-text {
 	font-size: 11px;
@@ -237,7 +241,7 @@ nav#top {
 	padding-left: 0;
 }
 #topmenu > li:hover > a,
-#topmenu li.current-menu-item a {
+#topmenu li.current-menu-item > a {
 	color: #00adef;
 }
 #topmenu ul {

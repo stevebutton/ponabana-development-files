@@ -45,7 +45,11 @@ get_header();
 			<div class="entry-content clearfix mb40">
 				<?php the_content(); ?>
 			</div>
-			<?php wp_link_pages(array('before' => '<footer class="entry-footer mt20"><p><strong>Pages:</strong> ', 'after' => '</p></footer>', 'next_or_number' => 'number')); ?>
+			<?php wp_link_pages(array(
+				'before'         => '<footer class="entry-footer mt20"><p><strong>' . __('Pages', 'g7theme') . ':</strong> ',
+				'after'          => '</p></footer>',
+				'next_or_number' => 'number',
+			)); ?>
 		<?php endif; ?>
 
 		<?php if (isset($contact_error)) : ?>
