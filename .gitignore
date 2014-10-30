@@ -1,6 +1,12 @@
 .htaccess
 resources-ignore/
 /resources-ignore/
+testing/
+/testing/
+www.maps.ponabana.dev/
+/www.maps.ponabana.dev/
+/local/
+local/
 www.ponabana.dev/resources-ignore/
 www.ponabana.dev/wp-config.php
 www.ponabana.dev/wp-content/blogs.dir/

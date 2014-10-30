@@ -9,7 +9,40 @@ Template: compasso
 */
 
 @import url("../compasso/style.css");
-
+.jedi-hours_dash {
+clear: none !important;
+}
+.jedi-dashboard {
+width: 398px !important;
+}
+#callout {
+position: relative;
+/*background-image: URL(/gfx/crcfr.png);    
+*/background-repeat: no-repeat;
+float: left;
+width: 632px;
+height:100px;
+}
+#unieleze {
+position: relative;
+top: 0px;
+/*left:-10px;
+float:right;*/
+padding-left:0px;	
+}
+#crcgfx {
+position: relative;
+height:80px;
+float:left;
+padding-left: 0px;	
+}
+#countdown {
+position: relative;
+top: -62px;
+height:80px;
+float:right;
+padding-right: 0px;	
+}
 #intro {
 text-align: right;
 line-height: 40px;

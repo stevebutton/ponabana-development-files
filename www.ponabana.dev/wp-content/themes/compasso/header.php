@@ -35,6 +35,8 @@
 	<header>
 		<div class="container">
 			<div class="six columns">
+          
+
 				<div id="logo">
 					<?php if (g7_option('logo') == '1') : ?>
 						<a href="<?php echo esc_url(home_url('/')); ?>">
@@ -71,7 +73,7 @@
 					<input type="text" name="s" id="cari" placeholder="<?php _e('Search...', 'g7theme'); ?>">
 				</form>
 			</nav>
-
+ 
 			<?php if (is_front_page() && g7_option('slider')) : ?>
 				<?php get_template_part('slider'); ?>
 			<?php endif; ?>
