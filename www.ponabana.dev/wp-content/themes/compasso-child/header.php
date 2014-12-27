@@ -92,7 +92,7 @@
 <?php elseif(ICL_LANGUAGE_CODE=='en'): ?>
 <a href="http://ponabana.com/category/crc-en/?lang=en" target="_self"><img src="/gfx/crcen.png" alt="" width="632" height="100"></a>
 <?php endif;?>
-<div id="countdown"><?php echo do_shortcode('[tminus t="20-11-2014 12:12:12"]'); ?></div></div>
+<div id="countdown"><?php /*?><?php echo do_shortcode('[tminus t="20-11-2014 12:12:12"]'); ?><?php */?></div></div>
  <div id="unieleze"><?php if(ICL_LANGUAGE_CODE=='fr'): ?>
    <a href="http://unieleze.cd/" target="new"><img src="/gfx/unilezegrabfr.png"></a>
 <?php elseif(ICL_LANGUAGE_CODE=='en'): ?>
